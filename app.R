@@ -46,8 +46,8 @@ austin_map$value <- as.numeric(austin_map$value)
 
 austin_map <-
   austin_map |> filter(GEOID_ != 480559601011 &
-                          GEOID_ != 480559601012 &
-                          GEOID_ != 484910203012)
+                         GEOID_ != 480559601012 &
+                         GEOID_ != 484910203012)
 
 var_choices <- unique(austin_map$var)
 
@@ -317,9 +317,13 @@ tabItems(
           ),
           verbatimTextOutput(outputId = "address_coord"),
           div(
-            textInput(inputId = "my_address", label = "Type An Address")    
-            ,textOutput(outputId = "full_address")
-            ,HTML(paste0(" <script> 
+            textInput(inputId = "my_address", label = "Type An Address")
+            ,
+            textOutput(outputId = "full_address")
+            ,
+            HTML(
+              paste0(
+                " <script>
                 function initAutocomplete() {
 
                  var autocomplete =   new google.maps.places.Autocomplete(document.getElementById('my_address'),{types: ['geocode']});
@@ -352,12 +356,17 @@ tabItems(
                  Shiny.onInputChange('jsValueAddressNumber', address_number);
                  Shiny.onInputChange('jsValuePretty', addressPretty);
                  Shiny.onInputChange('jsValueCoords', coords);});}
-                 </script> 
-                 <script src='https://maps.googleapis.com/maps/api/js?key=", key,"&libraries=places&callback=initAutocomplete' async defer></script>"))
+                 </script>
+                 <script src='https://maps.googleapis.com/maps/api/js?key=",
+                key,
+                "&libraries=places&callback=initAutocomplete' async defer></script>"
+              )
+            )
+          )
         )
       )
     )
-  )),
+  ),
   tabItem(tabName = "definitions",
           fluidRow(
             shinydashboard::box(
@@ -394,21 +403,21 @@ tabItems(
         title = userDescription(
           title = "Phoebe Romero",
           subtitle = "Environmental Program Coordinator",
-          image = "",
+          image = "images/Phoebe 2.jpg",
           type = 2
         ),
         status = "primary",
-        ""
+        "Phoebe Romero is passionate about the intersection of climate policy and racial equity. She currently works at the City of Austin Office of Sustainability focusing on air quality and climate action that reduces environmental impact and improves quality of life outcomes for historically impacted communities."
       ),
       userBox(
         title = userDescription(
           title = "Marc Coudert",
           subtitle = "Environmental Conservation Program Manager",
-          image = "",
+          image = "images/Coudert-sm.jpg",
           type = 2
         ),
         status = "primary",
-        ""
+        "As an employee of the City of Austin Office of Sustainability, Marc works with city departments to embed climate change resiliency into long term operation and asset management planning. In this role, he also supports community organizers to increase climate resilience in the Eastern Crescent."
       )
     ),
     br(),
@@ -475,32 +484,44 @@ server <- function(input, output, session) {
   
   #Address Look up using googleway
   my_address <- reactive({
-    if(!is.null(input$jsValueAddressNumber)){
-      if(length(grep(pattern = input$jsValueAddressNumber, x = input$jsValuePretty ))==0){
-        final_address<- c(input$jsValueAddressNumber, input$jsValuePretty)
+    if (!is.null(input$jsValueAddressNumber)) {
+      if (length(grep(
+        pattern = input$jsValueAddressNumber,
+        x = input$jsValuePretty
+      )) == 0) {
+        final_address <- c(input$jsValueAddressNumber, input$jsValuePretty)
       } else{
-        final_address<- input$jsValuePretty
+        final_address <- input$jsValuePretty
       }
       final_address
     }
   })
   
   zoom_block <- reactive({
+    if (!is.null(my_address())) {
+      full_blocks <- austin_map |> dplyr::filter(var == input$var)
+      register_google(key = key, day_limit = 100000)
+      lonlat <-
+        geocode(location = my_address(), output = "latlona")
+      spatial_point <-
+        st_as_sf(
+          lonlat,
+          coords = c("lon", "lat"),
+          crs = 4326,
+          remove = FALSE
+        )
+      lonlat <- select(lonlat, lon, lat)
+      censusblock_tovisualize <-
+        st_join(spatial_point, full_blocks)
+      censusblock_tovisualize <-
+        censusblock_tovisualize[!is.na(censusblock_tovisualize$address), ]
+      censusblock_tovisualize <-
+        censusblock_tovisualize[['GEOID_']]
+      tovisualize <-
+        full_blocks |> filter(GEOID_ == censusblock_tovisualize) |> bind_cols(lonlat)
+      tovisualize
+    }
     
-     if(!is.null(my_address())){
-       full_blocks <- austin_map |> dplyr::filter(var == input$var)
-       register_google(key = key, day_limit = 100000)
-       lonlat <- geocode(location = my_address(), output = "latlona")
-       spatial_point <-
-         st_as_sf(lonlat, coords = c("lon", "lat"), crs = 4326, remove = FALSE)
-       lonlat <- select(lonlat, lon, lat)
-       censusblock_tovisualize <- st_join(spatial_point, full_blocks)
-       censusblock_tovisualize <- censusblock_tovisualize[!is.na(censusblock_tovisualize$address),]
-       censusblock_tovisualize <- censusblock_tovisualize[['GEOID_']]
-       tovisualize <- full_blocks |> filter(GEOID_ == censusblock_tovisualize) |> bind_cols(lonlat)
-       tovisualize
-     }
-
   })
   
   
@@ -518,7 +539,7 @@ server <- function(input, output, session) {
   })
   
   
-
+  
   #Color Palette for Map
   pal <- reactive({
     colorNumeric(
@@ -529,7 +550,7 @@ server <- function(input, output, session) {
     )
   })
   
-  labels <- c("Low","","","","", "High")
+  labels <- c("Low", "", "", "", "", "High")
   
   #Definition Table
   output$definitions <- renderDataTable(definitions)
@@ -601,7 +622,8 @@ server <- function(input, output, session) {
         pal = pal(),
         values = ~ variable()$value,
         title = input$var,
-        labFormat = function(type, cuts, p){  # Here's the trick
+        labFormat = function(type, cuts, p) {
+          # Here's the trick
           paste0(labels)
         }
       )
@@ -621,13 +643,12 @@ server <- function(input, output, session) {
           bringToFront = TRUE
         )
       ) |>
-        setView(
-                lng = zoom_block()$lon,
+        setView(lng = zoom_block()$lon,
                 lat = zoom_block()$lat,
                 zoom = 14)
     }
     proxy
-     
+    
     
     
   })
@@ -643,7 +664,7 @@ server <- function(input, output, session) {
       color = I("#29AF7F"),
       x0 = input$var,
       hoverinfo = "none"
-    )   |> 
+    )   |>
       layout(yaxis = list(title = "",
                           zeroline = F)) |>
       config(displayModeBar = FALSE)
@@ -728,15 +749,16 @@ server <- function(input, output, session) {
   showModal(query_modal)
   
   
-  #Rendering Text for address look up 
+  #Rendering Text for address look up
   output$full_address <- renderText({
-    if(!is.null(my_address())){
+    if (!is.null(my_address())) {
       register_google(key = key, day_limit = 100000)
       lonlat <- geocode(location = my_address(), output = "latlona")
       spatial_point <-
         st_as_sf(lonlat, coords = c("lon", "lat"), crs = 4326)
       lonlat <- paste0(lonlat[1], ", ", lonlat[2])
-      censusblock_tovisualize <- st_join(spatial_point, variable(), left = FALSE)
+      censusblock_tovisualize <-
+        st_join(spatial_point, variable(), left = FALSE)
       print(paste0(input$var, ": ", censusblock_tovisualize[['value']]))
       print(paste0(input$var, "average: ", mean(censusblock_tovisualize[['value']])))
     }
