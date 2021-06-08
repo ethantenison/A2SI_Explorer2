@@ -22,6 +22,7 @@ library(plotly)
 library(shinydashboard)
 library(shinydashboardPlus)
 library(ggmap)
+library(googleway)
 
 # ------------------------------- #
 # ------------------------------- #
@@ -32,6 +33,9 @@ library(ggmap)
 
 options(scipen = 999)
 
+source("data/key.r")
+set_key(key = key)
+
 austin_map <- readRDS("./data/austin_composite.rds")
 austin_map <- as.data.frame(austin_map)
 austin_map <- st_as_sf(austin_map)
@@ -41,7 +45,7 @@ austin_map$value <- as.numeric(austin_map$value)
 
 
 austin_map <-
-  austin_map %>% filter(GEOID_ != 480559601011 &
+  austin_map |> filter(GEOID_ != 480559601011 &
                           GEOID_ != 480559601012 &
                           GEOID_ != 484910203012)
 
@@ -311,11 +315,49 @@ tabItems(
             btnReset = icon("remove"),
             width = "100%"
           ),
-          verbatimTextOutput(outputId = "address_coord")
+          verbatimTextOutput(outputId = "address_coord"),
+          div(
+            textInput(inputId = "my_address", label = "Type An Address")    
+            ,textOutput(outputId = "full_address")
+            ,HTML(paste0(" <script> 
+                function initAutocomplete() {
+
+                 var autocomplete =   new google.maps.places.Autocomplete(document.getElementById('my_address'),{types: ['geocode']});
+                 autocomplete.setFields(['address_components', 'formatted_address',  'geometry', 'icon', 'name']);
+                 autocomplete.addListener('place_changed', function() {
+                 var place = autocomplete.getPlace();
+                 if (!place.geometry) {
+                 return;
+                 }
+
+                 var addressPretty = place.formatted_address;
+                 var address = '';
+                 if (place.address_components) {
+                 address = [
+                 (place.address_components[0] && place.address_components[0].short_name || ''),
+                 (place.address_components[1] && place.address_components[1].short_name || ''),
+                 (place.address_components[2] && place.address_components[2].short_name || ''),
+                 (place.address_components[3] && place.address_components[3].short_name || ''),
+                 (place.address_components[4] && place.address_components[4].short_name || ''),
+                 (place.address_components[5] && place.address_components[5].short_name || ''),
+                 (place.address_components[6] && place.address_components[6].short_name || ''),
+                 (place.address_components[7] && place.address_components[7].short_name || '')
+                 ].join(' ');
+                 }
+                 var address_number =''
+                 address_number = [(place.address_components[0] && place.address_components[0].short_name || '')]
+                 var coords = place.geometry.location;
+                 //console.log(address);
+                 Shiny.onInputChange('jsValue', address);
+                 Shiny.onInputChange('jsValueAddressNumber', address_number);
+                 Shiny.onInputChange('jsValuePretty', addressPretty);
+                 Shiny.onInputChange('jsValueCoords', coords);});}
+                 </script> 
+                 <script src='https://maps.googleapis.com/maps/api/js?key=", key,"&libraries=places&callback=initAutocomplete' async defer></script>"))
         )
       )
     )
-  ),
+  )),
   tabItem(tabName = "definitions",
           fluidRow(
             shinydashboard::box(
@@ -415,11 +457,11 @@ tabItems(
 server <- function(input, output, session) {
   #create the map
   output$bg <- renderLeaflet({
-    leaflet(austin_map, options = leafletOptions(zoomControl = FALSE)) %>%
+    leaflet(austin_map, options = leafletOptions(zoomControl = FALSE)) |>
       setView(lng = -97.74,
               lat = 30.30,
-              zoom = 10)  %>%
-      addProviderTiles(providers$CartoDB.Positron) %>%
+              zoom = 10)  |>
+      addProviderTiles(providers$CartoDB.Positron) |>
       htmlwidgets::onRender("function(el, x) {
         L.control.zoom({ position: 'topright' }).addTo(this)
     }")
@@ -428,13 +470,43 @@ server <- function(input, output, session) {
   
   
   variable <- reactive({
-    austin_map %>% dplyr::filter(var == input$var)
+    austin_map |> dplyr::filter(var == input$var)
+  })
+  
+  #Address Look up using googleway
+  my_address <- reactive({
+    if(!is.null(input$jsValueAddressNumber)){
+      if(length(grep(pattern = input$jsValueAddressNumber, x = input$jsValuePretty ))==0){
+        final_address<- c(input$jsValueAddressNumber, input$jsValuePretty)
+      } else{
+        final_address<- input$jsValuePretty
+      }
+      final_address
+    }
+  })
+  
+  zoom_block <- reactive({
+    
+     if(!is.null(my_address())){
+       full_blocks <- austin_map |> dplyr::filter(var == input$var)
+       register_google(key = key, day_limit = 100000)
+       lonlat <- geocode(location = my_address(), output = "latlona")
+       spatial_point <-
+         st_as_sf(lonlat, coords = c("lon", "lat"), crs = 4326, remove = FALSE)
+       lonlat <- select(lonlat, lon, lat)
+       censusblock_tovisualize <- st_join(spatial_point, full_blocks)
+       censusblock_tovisualize <- censusblock_tovisualize[!is.na(censusblock_tovisualize$address),]
+       censusblock_tovisualize <- censusblock_tovisualize[['GEOID_']]
+       tovisualize <- full_blocks |> filter(GEOID_ == censusblock_tovisualize) |> bind_cols(lonlat)
+       tovisualize
+     }
+
   })
   
   
   #High Risk Value Box
   output$highrisk <- renderValueBox({
-    highrisk <- variable() %>% filter(value >= 0.8)
+    highrisk <- variable() |> filter(value >= 0.8)
     total <- sum(highrisk$`Total population`)
     
     valueBox(
@@ -457,6 +529,7 @@ server <- function(input, output, session) {
     )
   })
   
+  labels <- c("Low","","","","", "High")
   
   #Definition Table
   output$definitions <- renderDataTable(definitions)
@@ -485,9 +558,9 @@ server <- function(input, output, session) {
   
   #Map attributes to display
   observe({
-    leafletProxy("bg", data = variable()) %>%
-      clearShapes() %>%
-      clearControls() %>%
+    proxy <- leafletProxy("bg", data = variable()) |>
+      clearShapes() |>
+      clearControls() |>
       addPolygons(
         color = "#444444",
         weight = 1,
@@ -522,14 +595,44 @@ server <- function(input, output, session) {
           "Low Income (%): ",
           format(variable()$`% low-income`, digits = 1)
         )
-      ) %>%
+      ) |>
       addLegend(
         "bottomright",
         pal = pal(),
         values = ~ variable()$value,
-        title = input$var
+        title = input$var,
+        labFormat = function(type, cuts, p){  # Here's the trick
+          paste0(labels)
+        }
       )
+    
+    if (!is.null(my_address())) {
+      proxy <- proxy |> addPolygons(
+        data = zoom_block(),
+        color = "#444444",
+        weight = 1,
+        smoothFactor = 0.5,
+        opacity = 1.0,
+        fillOpacity = 0.9,
+        fillColor = "black",
+        highlightOptions = highlightOptions(
+          color = "red",
+          weight = 2,
+          bringToFront = TRUE
+        )
+      ) |>
+        setView(
+                lng = zoom_block()$lon,
+                lat = zoom_block()$lat,
+                zoom = 14)
+    }
+    proxy
+     
+    
+    
   })
+  
+  
   
   #Violin Plot of Variable Selected
   output$violin <- renderPlotly({
@@ -540,9 +643,9 @@ server <- function(input, output, session) {
       color = I("#29AF7F"),
       x0 = input$var,
       hoverinfo = "none"
-    )  %>%
+    )   |> 
       layout(yaxis = list(title = "",
-                          zeroline = F)) %>%
+                          zeroline = F)) |>
       config(displayModeBar = FALSE)
     
     
@@ -569,8 +672,8 @@ server <- function(input, output, session) {
   #Data for barplot
   bar <- reactive({
     bar <-
-      austin_map %>%
-      dplyr::filter(var == input$var) %>%
+      austin_map |>
+      dplyr::filter(var == input$var) |>
       mutate(
         `> 50% People of Color` = if_else(`% people of color` >= 0.5, 1, 0),
         `> 50% Low Income` = if_else(`% low-income` >= 0.5, 1, 0)
@@ -578,10 +681,10 @@ server <- function(input, output, session) {
     
     total_av <- mean(bar$value)
     
-    poc <- bar %>% filter(`> 50% People of Color` == 1)
+    poc <- bar |> filter(`> 50% People of Color` == 1)
     poc_av <- mean(poc$value)
     
-    lowincome <- bar %>% filter(`> 50% Low Income` == 1)
+    lowincome <- bar |> filter(`> 50% Low Income` == 1)
     lowincome_av <- mean(lowincome$value)
     
     
@@ -605,7 +708,7 @@ server <- function(input, output, session) {
       color = I("#00a65a"),
       type = 'bar'
       
-    ) %>%
+    ) |>
       config(displayModeBar = FALSE)
     
   })
@@ -625,17 +728,18 @@ server <- function(input, output, session) {
   showModal(query_modal)
   
   
-  #Address Look up
-  
-  output$address_coord <- renderPrint({
-    register_google(key = "", day_limit = 100000)
-    lonlat <- geocode(location = input$search, output = "latlona")
-    spatial_point <-
-      st_as_sf(lonlat, coords = c("lon", "lat"), crs = 4326)
-    lonlat <- paste0(lonlat[1], ", ", lonlat[2])
-    censusblock_tovisualize <- st_join(spatial_point, variable())
-    print(paste0(input$var, ": ", censusblock_tovisualize[['value']]))
-    print(paste0(input$var, "average: ", mean(censusblock_tovisualize[['value']])))
+  #Rendering Text for address look up 
+  output$full_address <- renderText({
+    if(!is.null(my_address())){
+      register_google(key = key, day_limit = 100000)
+      lonlat <- geocode(location = my_address(), output = "latlona")
+      spatial_point <-
+        st_as_sf(lonlat, coords = c("lon", "lat"), crs = 4326)
+      lonlat <- paste0(lonlat[1], ", ", lonlat[2])
+      censusblock_tovisualize <- st_join(spatial_point, variable(), left = FALSE)
+      print(paste0(input$var, ": ", censusblock_tovisualize[['value']]))
+      print(paste0(input$var, "average: ", mean(censusblock_tovisualize[['value']])))
+    }
   })
   
   
