@@ -215,6 +215,7 @@ tabItems(
                 "Environmental Measures" = list(
                   "Wildfire Exposure",
                   "Heat Exposure",
+                  "Flood Exposure",
                   "Multihazard Exposure",
                   "Population Sensitivity",
                   "Multihazard Exposure and Population Sensitivity",
@@ -235,6 +236,8 @@ tabItems(
                   "Total population",
                   "% people of color",
                   "% low-income",
+                  "% under age 5",
+                  "% over age 64",
                   "Average Vehicles per person",
                   "Percent of households without a car"
                 )
@@ -242,85 +245,18 @@ tabItems(
             selected = "Multihazard Exposure and Population Sensitivity"
           )
         ),
-        valueBox(
-          "1,342,588",
-          "Total Population",
-          color = "blue",
-          icon = icon("users")
-        ),
-        valueBoxOutput("highrisk")
-      )
-    ),
-    fluidRow(
-      column(
-        width = 8,
-        style = 'padding:25px;padding-top:0px;padding-left:30px;',
-        offset = 0,
-        fluidRow(
-          shinydashboard::box(
-            title = "Austin Area by Census Block Group",
-            width = 12,
-            solidHeader = FALSE,
-            status = "primary",
-            leafletOutput("bg", height = 600)
-            
-          )
-        )
-        
-      ),
-      column(
-        width = 4,
-        style = 'padding-left:25px; padding-top:0px; padding-right:42px;',
-        offset = 0,
-        fluidRow(
-          shinydashboard::box(
-            title = "Variable Information",
-            width = 12,
-            solidHeader = FALSE,
-            status = "primary",
-            dataTableOutput("varinfo")
-            
-          )
-        ),
-        br(),
-        br(),
-        fluidRow(
-          shinydashboard::box(
-            title = textOutput("demographic"),
-            width = 12,
-            solidHeader = FALSE,
-            status = "primary",
-            plotlyOutput("barplot", height = "245px")
-            
-          )
-        )
-      )
-    ),
-    fluidRow(
-      column(
-        width = 8,
-        style = 'padding:25px;padding-left:17px;',
-        offset = 0,
         shinydashboard::box(
-          title = "Data for your address",
-          width = 12,
+          title = "Type an Address to zoom in",
+          width = 4,
+          height = "100px",
           solidHeader = FALSE,
+          background = "light-blue",
           status = "primary",
-          searchInput(
-            inputId = "search",
-            label = "Click search icon to update or hit 'Enter'",
-            placeholder = "A placeholder",
-            value = "110 Jacob Fontaine Ln, Austin, TX",
-            btnSearch = icon("search"),
-            btnReset = icon("remove"),
-            width = "100%"
-          ),
-          verbatimTextOutput(outputId = "address_coord"),
           div(
-            textInput(inputId = "my_address", label = "Type An Address")
+            textInput(inputId = "my_address", label = NULL)
             ,
-            textOutput(outputId = "full_address")
-            ,
+            #textOutput(outputId = "full_address")
+            #,
             HTML(
               paste0(
                 " <script>
@@ -363,10 +299,62 @@ tabItems(
               )
             )
           )
-        )
+        ),
+        # valueBox(
+        #   "1,342,588",
+        #   "Total Population",
+        #   color = "blue",
+        #   icon = icon("users")
+        # ),
+        valueBoxOutput("highrisk")
       )
-    )
-  ),
+    ),
+    fluidRow(
+      column(
+        width = 4,
+        style = 'padding:25px;padding-top:0px;padding-left:30px;',
+        offset = 0,
+        fluidRow(
+          shinydashboard::box(
+            title = "Variable Information",
+            width = 12,
+            solidHeader = FALSE,
+            status = "primary",
+            dataTableOutput("varinfo")
+            
+          )
+        ),
+        br(),
+        br(),
+        fluidRow(
+          shinydashboard::box(
+            title = textOutput("demographic"),
+            width = 12,
+            solidHeader = FALSE,
+            status = "primary",
+            plotlyOutput("barplot", height = "245px")
+            
+          )
+        )
+      ),
+      column(
+        width = 8,
+        style = 'padding-left:25px; padding-top:0px; padding-right:42px;',
+        offset = 0,
+        fluidRow(
+          shinydashboard::box(
+            title = "Austin Area by Census Block Group",
+            width = 12,
+            solidHeader = FALSE,
+            status = "primary",
+            leafletOutput("bg", height = 600)
+            
+          )
+        )
+        
+      )
+      
+    )),
   tabItem(tabName = "definitions",
           fluidRow(
             shinydashboard::box(
@@ -437,11 +425,11 @@ tabItems(
         title = userDescription(
           title = "Patrick Bixler",
           subtitle = "Assistant Professor",
-          image = "",
+          image = "images/thumbnail_Bixler Headshot.jpg",
           type = 2
         ),
         status = "primary",
-        ""
+        "Patrick Bixler is an Assistant Professor at the LBJ School of Public Affairs, core faculty at the RGK Center for Philanthropy and Community Service, and has a joint appointment in the Community and Regional Planning program at the University of Texas. He directs the Austin Area Sustainability Indicators project and co-leads a Planet Texas 2050 Flagship initiative."
       )
     )
   )
@@ -550,10 +538,27 @@ server <- function(input, output, session) {
     )
   })
   
-  labels <- c("Low", "", "", "", "", "High")
+  labels <- reactive({
+    
+    mini <- as.character(signif(min(variable()$value)), digits = 2)
+    max <- as.character(signif(max(variable()$value)), digits = 2)
+    first <- as.character(signif(quantile(variable()$value, 0.25)), digits = 2)
+    third <- as.character(signif(quantile(variable()$value, 0.75)), digits = 2)
+    med <- as.character(signif(median(variable()$value)), digits = 2)
+    
+    labels <- c(paste0(mini, " Low"), first, med, third, paste(max, " High"))
+    labels
+  })
   
   #Definition Table
-  output$definitions <- renderDataTable(definitions)
+  output$definitions <- renderDataTable(
+    
+    DT::datatable(definitions,
+                  options = list(
+                  pageLength = 25)
+    )
+    
+    )
   
   #Variable info table
   varinfo_reactive <- reactive({
@@ -624,28 +629,50 @@ server <- function(input, output, session) {
         title = input$var,
         labFormat = function(type, cuts, p) {
           # Here's the trick
-          paste0(labels)
+          paste0(labels())
         }
       )
     
     if (!is.null(my_address())) {
       proxy <- proxy |> addPolygons(
         data = zoom_block(),
-        color = "#444444",
-        weight = 1,
+        color = "red",
+        weight = 5,
         smoothFactor = 0.5,
         opacity = 1.0,
-        fillOpacity = 0.9,
+        fillOpacity = 0.1,
         fillColor = "black",
         highlightOptions = highlightOptions(
           color = "red",
-          weight = 2,
+          weight = 3,
           bringToFront = TRUE
+        ),
+        label = ~ paste0(zoom_block()$var,
+                         ": ",
+                         format(zoom_block()$value, digits = 1)),
+        
+        popup =  ~ paste0(
+          "<h5/><b>",
+          zoom_block()$var,
+          ": ",
+          format(zoom_block()$value, digits = 1),
+          "<h6/>",
+          "Census Block Group: ",
+          GEOID_,
+          "<h6/>",
+          "Total population: ",
+          format(zoom_block()$`Total population`, big.mark = ","),
+          "<h6/>",
+          "People of Color (%): ",
+          format(zoom_block()$`% people of color`, digits = 1),
+          "<h6/>",
+          "Low Income (%): ",
+          format(zoom_block()$`% low-income`, digits = 1)
         )
       ) |>
         setView(lng = zoom_block()$lon,
                 lat = zoom_block()$lat,
-                zoom = 14)
+                zoom = 13)
     }
     proxy
     

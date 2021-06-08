@@ -102,7 +102,7 @@ car_household$`Estimate!!Total:` <- as.numeric(car_household$`Estimate!!Total:`)
 car_household$`No Car` <- car_household$`Estimate!!Total:!!Owner occupied:!!No vehicle available` + car_household$`Estimate!!Total:!!Renter occupied:!!No vehicle available`
 car_household$`Percent of households without a car` <- car_household$`No Car`/car_household$`Estimate!!Total:`
 
-car_household <- car_household %>% select(id,`Percent of households without a car` )
+car_household <- car_household |> select(id,`Percent of households without a car` )
 
 ```
 
@@ -131,12 +131,12 @@ ej$`Percentile for PM2.5 level in air` <-
     ej$`Percentile for PM2.5 level in air` * 0.01
 
 lur <-
-    caces_lur_raw %>% select(fips, pollutant, pred_wght) %>% spread(pollutant, pred_wght)
+    caces_lur_raw |> select(fips, pollutant, pred_wght) |> spread(pollutant, pred_wght)
 lur$fips <- as.character(lur$fips)
 
-rcm <- caces_rcm_raw %>% filter(season == "fall") %>%
-    select(fips, pollutant, damage) %>%
-    spread(pollutant, damage) %>%
+rcm <- caces_rcm_raw |> filter(season == "fall") |>
+    select(fips, pollutant, damage) |>
+    spread(pollutant, damage) |>
     rename(
         "NH3 Damage ($)" = "nh3",
         "NOx Damage ($)" = "nox",
@@ -145,21 +145,21 @@ rcm <- caces_rcm_raw %>% filter(season == "fall") %>%
     )
 rcm$fips <- as.character(rcm$fips)
 
-bg <- BG_xwalk_raw %>% select(GEOID,Avg_Imperv, Count, Count_Tree, Avg_Tree, Index)
+bg <- BG_xwalk_raw |> select(GEOID,Avg_Imperv, Count, Count_Tree, Avg_Tree, Index)
 bg$GEOID <- as.character(bg$GEOID)
 
-#merging
+#merging  
 df <-
-    df %>%
-    left_join(bg_raw, by = c("GEOID_" = "GEOID")) %>%
-    left_join(ej, by = c("GEOID_" = "Census FIPS code for block group")) %>%
-    left_join(exposure_raw, by = "GEOID_") %>%
-    left_join(vul_raw, by = c("GEOID_" = "ID_Blk_Grp")) %>%
-    left_join(car, by = c("GEOID_" = "id")) %>%
-    left_join(car_household, by = c("GEOID_" = "id")) %>%
-    left_join(lur, by = c("GEOID_" = "fips")) %>%
-    left_join(rcm, by = c("GEOID_" = "fips")) %>%
-    left_join(bg, by = c("GEOID_" = "GEOID")) %>% 
+    df |>
+    left_join(bg_raw, by = c("GEOID_" = "GEOID")) |>
+    left_join(ej, by = c("GEOID_" = "Census FIPS code for block group")) |>
+    left_join(exposure_raw, by = "GEOID_") |>
+    left_join(vul_raw, by = c("GEOID_" = "ID_Blk_Grp")) |>
+    left_join(car, by = c("GEOID_" = "id")) |>
+    left_join(car_household, by = c("GEOID_" = "id")) |>
+    left_join(lur, by = c("GEOID_" = "fips")) |>
+    left_join(rcm, by = c("GEOID_" = "fips")) |>
+    left_join(bg, by = c("GEOID_" = "GEOID")) |> 
     rename(
         "Multihazard Exposure" = "Norm_Composite (Norm)",
         "Social Vulnerability Score" = "SVI Score (0-1)",
@@ -167,6 +167,7 @@ df <-
         "Aggregate Vehicles" = "Estimate!!Aggregate number of vehicles available:",
         "Wildfire Exposure" = "Wildfire Exposure (Norm)",
         "Heat Exposure" = "Heat Exposure (Norm",
+        "Flood Exposure" = "Flood Exposure (norm)",
         "CO" = "co",
         "NO2" = "no2",
         "O3" = "o3",
@@ -175,11 +176,12 @@ df <-
         "SO2" = "so2",
         "Average Impervious Cover" = "Avg_Imperv",
         "Average Tree Cover" = "Avg_Tree"
-    ) %>%
+    ) |>
     select(
         GEOID_,
         "Wildfire Exposure",
         "Heat Exposure",
+        "Flood Exposure",
         "Multihazard Exposure",
         "Social Vulnerability Score",
         "Climate Exposure and Climate Vulnerability",
@@ -188,6 +190,8 @@ df <-
         "Total population",
         "% people of color",
         "% low-income",
+        "% under age 5",
+        "% over age 64",
         "Aggregate Vehicles",
         "Percent of households without a car",
         "CO",
@@ -206,7 +210,7 @@ df <-
 df$`Average Vehicles per person` <-
     df$`Aggregate Vehicles` / df$`Total population`
 
-df <- df %>% select(-c("Aggregate Vehicles"))
+df <- df |> select(-c("Aggregate Vehicles"))
 df$`Average Vehicles per person`[df$`Average Vehicles per person` == 0] <-
     0.5
 
@@ -218,18 +222,18 @@ geometry <- select(df,
                    "% people of color",
                    "% low-income",)
 df <-
-    df %>%
+    df |>
     select(
         GEOID_,
         "Average Vehicles per person",
         "Percent of households without a car",
         everything()
-    ) %>%
-    mutate(across(everything(), as.character)) %>%
+    ) |>
+    mutate(across(everything(), as.character)) |>
     pivot_longer(cols = 2:21,
                  names_to = "var",
-                 values_to = "value") %>%
-    select(GEOID_, var, value) %>%
+                 values_to = "value") |>
+    select(GEOID_, var, value) |>
     left_join(geometry)
 
 
