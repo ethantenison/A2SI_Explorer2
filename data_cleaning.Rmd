@@ -230,7 +230,7 @@ df <-
         everything()
     ) |>
     mutate(across(everything(), as.character)) |>
-    pivot_longer(cols = 2:21,
+    pivot_longer(cols = 2:24,
                  names_to = "var",
                  values_to = "value") |>
     select(GEOID_, var, value) |>

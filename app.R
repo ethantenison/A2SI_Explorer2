@@ -253,10 +253,7 @@ tabItems(
           background = "light-blue",
           status = "primary",
           div(
-            textInput(inputId = "my_address", label = NULL)
-            ,
-            #textOutput(outputId = "full_address")
-            #,
+            textInput(inputId = "my_address", label = NULL, width = "100%"),
             HTML(
               paste0(
                 " <script>
@@ -300,12 +297,6 @@ tabItems(
             )
           )
         ),
-        # valueBox(
-        #   "1,342,588",
-        #   "Total Population",
-        #   color = "blue",
-        #   icon = icon("users")
-        # ),
         valueBoxOutput("highrisk")
       )
     ),
@@ -485,6 +476,7 @@ server <- function(input, output, session) {
     }
   })
   
+  #Zoom in on address selected
   zoom_block <- reactive({
     if (!is.null(my_address())) {
       full_blocks <- austin_map |> dplyr::filter(var == input$var)
@@ -508,6 +500,17 @@ server <- function(input, output, session) {
       tovisualize <-
         full_blocks |> filter(GEOID_ == censusblock_tovisualize) |> bind_cols(lonlat)
       tovisualize
+    }
+    
+  })
+  
+  #Code to clear out highlighted block if none is selected 
+  clearaddress <- reactive({
+    
+    if (input$my_address == "" | is.na(input$my_address)) {
+      clear <- "clear"
+    } else {
+      clear <- "don't clear"
     }
     
   })
@@ -634,88 +637,67 @@ server <- function(input, output, session) {
       )
     
     if (!is.null(my_address())) {
-      proxy <- proxy |> addPolygons(
-        data = zoom_block(),
-        color = "red",
-        weight = 5,
-        smoothFactor = 0.5,
-        opacity = 1.0,
-        fillOpacity = 0.1,
-        fillColor = "black",
-        highlightOptions = highlightOptions(
+      proxy <- proxy |>
+        addPolygons(
+          layerId = "address_lookup",
+          data = zoom_block(),
           color = "red",
-          weight = 3,
-          bringToFront = TRUE
-        ),
-        label = ~ paste0(zoom_block()$var,
-                         ": ",
-                         format(zoom_block()$value, digits = 1)),
-        
-        popup =  ~ paste0(
-          "<h5/><b>",
-          zoom_block()$var,
-          ": ",
-          format(zoom_block()$value, digits = 1),
-          "<h6/>",
-          "Census Block Group: ",
-          GEOID_,
-          "<h6/>",
-          "Total population: ",
-          format(zoom_block()$`Total population`, big.mark = ","),
-          "<h6/>",
-          "People of Color (%): ",
-          format(zoom_block()$`% people of color`, digits = 1),
-          "<h6/>",
-          "Low Income (%): ",
-          format(zoom_block()$`% low-income`, digits = 1)
-        )
-      ) |>
+          weight = 5,
+          smoothFactor = 0.5,
+          opacity = 1.0,
+          fillOpacity = 0.1,
+          fillColor = "black",
+          highlightOptions = highlightOptions(
+            color = "red",
+            weight = 3,
+            bringToFront = TRUE
+          ),
+          label = ~ paste0(zoom_block()$var,
+                           ": ",
+                           format(zoom_block()$value, digits = 1)),
+          
+          popup =  ~ paste0(
+            "<h5/><b>",
+            zoom_block()$var,
+            ": ",
+            format(zoom_block()$value, digits = 1),
+            "<h6/>",
+            "Census Block Group: ",
+            GEOID_,
+            "<h6/>",
+            "Total population: ",
+            format(zoom_block()$`Total population`, big.mark = ","),
+            "<h6/>",
+            "People of Color (%): ",
+            format(zoom_block()$`% people of color`, digits = 1),
+            "<h6/>",
+            "Low Income (%): ",
+            format(zoom_block()$`% low-income`, digits = 1)
+          )
+        ) |>
         setView(lng = zoom_block()$lon,
                 lat = zoom_block()$lat,
-                zoom = 13)
+                zoom = 13) 
     }
+    
+    if (clearaddress() == "clear") {
+      
+      proxy <- proxy |> 
+        removeShape(layerId = "address_lookup")
+    } else {
+      proxy <- proxy 
+    }
+    
+    
+    
+  
     proxy
     
     
     
   })
   
-  
-  
-  #Violin Plot of Variable Selected
-  output$violin <- renderPlotly({
-    plot_ly(
-      y = ~ variable()$value,
-      type = 'violin',
-      box = list(visible = T),
-      color = I("#29AF7F"),
-      x0 = input$var,
-      hoverinfo = "none"
-    )   |>
-      layout(yaxis = list(title = "",
-                          zeroline = F)) |>
-      config(displayModeBar = FALSE)
-    
-    
-    
-  })
-  
-  output$name <-
-    renderText({
-      paste0("Variable Name:    ", input$var)
-    })
-  
-  output$def <-
-    renderText({
-      def <- filter(definitions, Variable == input$var)
-      paste0("Definition:    ", def[[2]])
-    })
-  
-  output$source <-
-    renderText({
-      def <- filter(definitions, Variable == input$var)
-      paste0("Source:    ", def[[3]])
-    })
+
   
   #Data for barplot
   bar <- reactive({
