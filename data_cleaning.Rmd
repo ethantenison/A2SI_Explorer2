@@ -73,6 +73,9 @@ caces_lur_raw <- read_csv("data/caces_lur_2015.csv")
 caces_rcm_raw <- read_csv("data/caces_rcm_2017.csv")
 
 BG_xwalk_raw <- read_csv("data/BG_xwalk.csv")
+
+capcog_oz_raw <- st_read("data/shape_files/Ozone_Modeling_2020.shp") |> clean_names()
+capcog_oz_raw  <-st_transform(capcog_oz_raw ,"+proj=longlat +ellps=WGS84 +datum=WGS84")
 ```
 
 
@@ -105,6 +108,26 @@ car_household$`Percent of households without a car` <- car_household$`No Car`/ca
 car_household <- car_household |> select(id,`Percent of households without a car` )
 
 ```
+
+
+# Capcog data
+
+```{r capcog}
+cap_ozone <- capcog_oz_raw |> 
+    select(fid, fourth_hig, geometry) |> 
+    mutate(var = "Ozone - CAPCOG",
+           "Total population" = 100000,
+           "% people of color" = 0.8,
+           "% low-income" = 0.8,
+           fid = as.character(fid)) |> 
+    rename(GEOID_ = fid, value = fourth_hig)
+    
+
+
+```
+
+
+
 
 ```{r}
 
@@ -255,6 +278,8 @@ df$value[df$var == "CO" & df$value == 0] <- 0.2
 df$value[df$var == "NO2" & df$value == 0] <- 3
 df$value[df$var == "SO2" & df$value == 0] <- 0.9
 df$value[df$var == "O3" & df$value == 0] <- 43
+
+df <- bind_rows(df, cap_ozone)
 
 saveRDS(df, "data/austin_composite.rds")
 

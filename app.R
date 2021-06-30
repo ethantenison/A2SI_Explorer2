@@ -227,6 +227,7 @@ tabItems(
                   "NO2",
                   "SO2",
                   "O3",
+                  "Ozone - CAPCOG",
                   "Percentile for Ozone level in air",
                   "PM2.5",
                   "Percentile for PM2.5 level in air" ,
