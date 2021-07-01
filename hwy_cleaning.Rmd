@@ -1,0 +1,70 @@
+---
+title: "Roadway Data Cleaning"
+author: "Ethan Tenison"
+date: "7/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+```{r data_pull_libraries, message=FALSE, warning=FALSE}
+library(readxl)
+library(sf)
+library(janitor)
+library(readr)
+library(tidyverse)
+
+
+#To know where to cut 
+capcog_oz_raw <- st_read("data/shape_files/Ozone_Modeling_2020.shp") |> clean_names()
+capcog_oz_raw  <-st_transform(capcog_oz_raw ,"+proj=longlat +ellps=WGS84 +datum=WGS84")
+
+
+hwy_raw <- st_read("data/shape_files/TxDOT_Roadway_Linework_wAssets.shp") |> clean_names()
+hwy_raw  <-st_transform(hwy_raw ,"+proj=longlat +ellps=WGS84 +datum=WGS84")
+
+```
+
+
+
+```{r}
+
+hwy <- hwy_raw |> 
+  filter(hsys == "IH" |
+         hsys == "SH" |
+         hsys == "US" |
+         hsys == "SL")
+
+
+capcog <- st_union(capcog_oz_raw)
+
+```
+
+
+
+```{r visualize}
+library(leaflet)
+
+#Area to cut 
+leaflet(capcog) |>  addTiles() |> addPolygons()
+
+```
+
+
+```{r roads}
+
+#Cutting highways by capcog region 
+
+inter <- st_intersects(capcog, hwy)
+
+test <- hwy[row_number(hwy) %in% inter, ]
+
+leaflet(inter) |>  addTiles() |> addPolygons() |> addPolylines()
+```
+
