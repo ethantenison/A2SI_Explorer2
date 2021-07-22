@@ -116,149 +116,113 @@ ui = shinydashboard::dashboardPage(
     )
     
   ),
-  body = shinydashboard::dashboardBody(
-    tags$head(
-      tags$style(
-        HTML(
-          '
-.box {margin: 0px;}
-# .box.box.box-primary>.box-header {
-#   background:#fff
-#                     }
-#
-# .box.box.box-primary{
-# border-bottom-color:#29AF7F;
-# border-left-color:#29AF7F;
-# border-right-color:#29AF7F;
-# border-top-color:#29AF7F;
-# }
-# .box.box-solid.box-primary>.box-header {
-#   background:#29AF7F;
-#                     }
-#
-# .box.box-solid.box-primary{
-# border-bottom-color:#29AF7F;
-# border-left-color:#29AF7F;
-# border-right-color:#29AF7F;
-# border-top-color:#29AF7F;
-# }
-#
-#
-# .box.box-solid.box-warning>.box-header {
-#   background:#453781;
-#                     }
-#
-# .box.box-solid.box-warning{
-# background:#453781;
-# border-bottom-color:#453781;
-# border-left-color:#453781;
-# border-right-color:#453781;
-# border-top-color:#453781;
-# }
-#
-#
-# .small-box.bg-green { background-color: #29AF7F !important; color: #ffffff !important; }
-# .small-box.bg-yellow { background-color: #DCE319 !important; color: #000000 !important; }
-# .small-box.bg-purple { background-color: #453781!important; color: #ffffff !important; }
-.myClass {
-        font-size: 20px;
-        line-height: 50px;
-        text-align: left;
-        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-        padding: 0 15px;
-        overflow: hidden;
-        color: black;
-}
-.dropdown-header .text { font-weight: bold }
-.dataTables_filter {
-display: none;
-}
+  body = shinydashboard::dashboardBody(tags$head(tags$style(
+    HTML(
+      '
+          .myClass {
+                  font-size: 20px;
+                  line-height: 50px;
+                  text-align: left;
+                  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+                  padding: 0 15px;
+                  overflow: hidden;
+                  color: black;
+          }
+          .dropdown-header .text { font-weight: bold }
+          .dataTables_filter {
+          display: none;
+          }
 
-'
-        )
-      )
-    ),
-tags$script(
-  HTML(
-    '
+        '
+    )
+  )),
+  tags$script(
+    HTML(
+      '
       $(document).ready(function() {
         $("header").find("nav").append(\'<span class="myClass"> Austin Area Sustainability Indicators </span>\');
       })
      '
-  )
-),
+    )
+  ), 
 tabItems(
   tabItem(
     tabName = "data",
-    
     fluidRow(
       column(
-        width = 12,
-        style = 'padding:25px;padding-left:17px;',
+        width = 3,
+        style = 'padding:25px;padding-top:25px;padding-left:30px;',
         offset = 0,
-        shinydashboard::box(
-          title = "Select a Variable",
-          width = 4,
-          height = "100px",
-          solidHeader = TRUE,
-          status = "success",
-          background = "green",
-          pickerInput(
-            "var",
-            label = NULL,
-            width = '100%',
-            inline = FALSE,
-            options = list(`actions-box` = TRUE,
-                           size = 10),
-            choices =
-              list(
-                "Environmental Measures" = list(
-                  "Wildfire Exposure",
-                  "Heat Exposure",
-                  "Flood Exposure",
-                  "Multihazard Exposure",
-                  "Population Sensitivity",
-                  "Multihazard Exposure and Population Sensitivity",
-                  "Average Impervious Cover",
-                  "Average Tree Cover"
+        fluidRow(
+          shinydashboard::box(
+            title = "Select a Variable",
+            width = 12,
+            solidHeader = FALSE,
+            status = "primary",
+            background = "light-blue",
+            pickerInput(
+              "var",
+              label = NULL,
+              width = '100%',
+              inline = FALSE,
+              options = list(`actions-box` = TRUE,
+                             size = 10),
+              choices =
+                list(
+                  "Environmental Measures" = list(
+                    "Wildfire Exposure",
+                    "Heat Exposure",
+                    "Flood Exposure",
+                    "Multihazard Exposure",
+                    "Population Sensitivity",
+                    "Multihazard Exposure and Population Sensitivity",
+                    "Average Impervious Cover",
+                    "Average Tree Cover"
+                  ),
+                  "Air Hazards" = list(
+                    "O3",
+                    "Ozone - CAPCOG",
+                    "Percentile for Ozone level in air",
+                    "PM2.5",
+                    "PM2.5 - CAPCOG",
+                    "Percentile for PM2.5 level in air"
+                  ),
+                  "Demograpic Information" = list(
+                    "Total population",
+                    "% people of color",
+                    "% low-income",
+                    "% under age 5",
+                    "% over age 64",
+                    "Average Vehicles per person",
+                    "Percent of households without a car"
+                  )
                 ),
-                "Air Hazards" = list(
-                  # "CO",
-                  # "NO2",
-                  # "SO2",
-                  "O3",
-                  "Ozone - CAPCOG",
-                  "Percentile for Ozone level in air",
-                  "PM2.5",
-                  "PM2.5 - CAPCOG",
-                  "Percentile for PM2.5 level in air" #,
-                  #"PM10"
-                ),
-                "Demograpic Information" = list(
-                  "Total population",
-                  "% people of color",
-                  "% low-income",
-                  "% under age 5",
-                  "% over age 64",
-                  "Average Vehicles per person",
-                  "Percent of households without a car"
-                )
-              ),
-            selected = "Multihazard Exposure and Population Sensitivity"
-          )
-        ),
-        shinydashboard::box(
-          title = "Type an Address to zoom in",
-          width = 4,
-          height = "100px",
-          solidHeader = FALSE,
-          background = "light-blue",
-          status = "primary",
-          div(
-            textInput(inputId = "my_address", label = NULL, width = "100%"),
-            HTML(
-              paste0(
-                " <script>
+              selected = "Multihazard Exposure and Population Sensitivity"
+            ),
+           # ("Variable Information"),
+            dataTableOutput("varinfo")
+          ),
+          
+          shinydashboard::box(
+            title = textOutput("demographic"),
+            width = 12,
+            solidHeader = FALSE,
+            status = "success",
+            background = "green",
+            plotlyOutput("barplot", height = "300px")
+          
+          ),
+          shinydashboard::box(
+            title = "Find your Census Block Group",
+            width = 12,
+            solidHeader = FALSE,
+            status = "danger",
+            background = "red",
+            div(
+              textInput(inputId = "my_address", label = NULL, width = "100%"),
+              HTML(
+                paste0(
+                  " <script>
                 function initAutocomplete() {
 
                  var autocomplete =   new google.maps.places.Autocomplete(document.getElementById('my_address'),{types: ['geocode']});
@@ -295,44 +259,17 @@ tabItems(
                  <script src='https://maps.googleapis.com/maps/api/js?key=",
                 key,
                 "&libraries=places&callback=initAutocomplete' async defer></script>"
+                )
               )
-            )
-          )
-        ),
-        valueBoxOutput("highrisk")
-      )
-    ),
-    fluidRow(
-      column(
-        width = 4,
-        style = 'padding:25px;padding-top:0px;padding-left:30px;',
-        offset = 0,
-        fluidRow(
-          shinydashboard::box(
-            title = "Variable Information",
-            width = 12,
-            solidHeader = FALSE,
-            status = "primary",
-            dataTableOutput("varinfo")
+            ),
             
           )
-        ),
-        br(),
-        br(),
-        fluidRow(
-          shinydashboard::box(
-            title = textOutput("demographic"),
-            width = 12,
-            solidHeader = FALSE,
-            status = "primary",
-            plotlyOutput("barplot", height = "245px")
-            
-          )
+          
         )
       ),
       column(
-        width = 8,
-        style = 'padding-left:25px; padding-top:0px; padding-right:42px;',
+        width = 9,
+        style = 'padding-left:20px; padding-top:25px; padding-right:42px;',
         offset = 0,
         fluidRow(
           shinydashboard::box(
@@ -340,7 +277,9 @@ tabItems(
             width = 12,
             solidHeader = FALSE,
             status = "primary",
-            leafletOutput("bg", height = 600)
+            background = "light-blue",
+            leafletOutput("bg", height = 800)
+            
             
           )
         )
@@ -458,7 +397,7 @@ server <- function(input, output, session) {
   })
   
   
-  
+  #Variable Select for map 
   variable <- reactive({
     austin_map |> dplyr::filter(var == input$var)
   })
@@ -517,22 +456,7 @@ server <- function(input, output, session) {
     
   })
   
-  
-  #High Risk Value Box
-  output$highrisk <- renderValueBox({
-    highrisk <- variable() |> filter(value >= 0.8)
-    total <- sum(highrisk$`Total population`)
-    
-    valueBox(
-      format(total, big.mark = ","),
-      paste0("Population above 0.8    ", input$var),
-      icon = icon("exclamation-circle"),
-      color = "red"
-    )
-  })
-  
-  
-  
+
   #Color Palette for Map
   pal <- reactive({
     colorNumeric(
@@ -562,12 +486,12 @@ server <- function(input, output, session) {
                   options = list(
                   pageLength = 25)
     )
-    
     )
   
   #Variable info table
   varinfo_reactive <- reactive({
-    def <- filter(definitions, Variable == input$var)
+    def <- definitions |> filter(Variable == input$var) |> 
+      select(-c(Variable))
     def <- t(def)
     colnames(def) <- " "
     def
