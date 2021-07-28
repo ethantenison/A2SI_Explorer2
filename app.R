@@ -189,6 +189,7 @@ tabItems(
                   ),
                   "Demograpic Information" = list(
                     "Total population",
+                    "Population Density",
                     "% people of color",
                     "% low-income",
                     "% under age 5",

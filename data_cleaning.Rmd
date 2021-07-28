@@ -240,6 +240,7 @@ df <-
         "PM2.5",
         "Average Impervious Cover",
         "Average Tree Cover",
+        "Shape area",
         geometry
         
     )
@@ -251,6 +252,12 @@ df$`Average Vehicles per person` <-
 df <- df |> select(-c("Aggregate Vehicles"))
 df$`Average Vehicles per person`[df$`Average Vehicles per person` == 0] <-
     0.5
+
+df$`Population Density` <-
+    df$`Total population` / df$`Shape area` 
+df$`Population Density`[df$`Population Density`== Inf] <- 0
+df <- mutate(df, `Population Density` = `Population Density` * 27878400)
+df$`Population Density`[df$`Population Density`== 0] <- 197
 
 
 geometry <- select(df,
@@ -265,10 +272,11 @@ df <-
         GEOID_,
         "Average Vehicles per person",
         "Percent of households without a car",
+        "Population Density", #YOu need to add variables here if they are at the end
         everything()
     ) |>
     mutate(across(everything(), as.character)) |>
-    pivot_longer(cols = 2:25, #This has to be adjusted when you add or remove variables 
+    pivot_longer(cols = 2:26, #This has to be adjusted when you add or remove variables 
                  names_to = "var",
                  values_to = "value") |>
     select(GEOID_, var, value) |>
