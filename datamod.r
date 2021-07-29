@@ -59,12 +59,6 @@ dataServer <- function(id) {
       austin_map |> dplyr::filter(var == input$var)
     })
     
-    input <- reactive({
-      input$var
-    })
-    
-    
-    #datalist <- list(variable, input)
-    variable
+  
   })
 }

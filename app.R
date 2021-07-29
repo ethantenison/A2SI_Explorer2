@@ -31,22 +31,8 @@ library(googleway)
 options(scipen = 999)
 
 source("data/key.r")
+source("datamod.r")
 set_key(key = key)
-
-austin_map <- readRDS("./data/austin_composite.rds")
-austin_map <- as.data.frame(austin_map)
-austin_map <- st_as_sf(austin_map)
-austin_map <-
-  st_transform(austin_map, "+proj=longlat +ellps=WGS84 +datum=WGS84")
-austin_map$value <- as.numeric(austin_map$value)
-
-
-austin_map <-
-  austin_map |> filter(GEOID_ != 480559601011 &
-                         GEOID_ != 480559601012 &
-                         GEOID_ != 484910203012)
-
-var_choices <- unique(austin_map$var)
 
 definitions <- read_csv("data/definitions.csv")
 
@@ -157,46 +143,7 @@ ui = shinydashboard::dashboardPage(
               solidHeader = FALSE,
               status = "primary",
               background = "light-blue",
-              pickerInput(
-                "var",
-                label = NULL,
-                width = '100%',
-                inline = FALSE,
-                options = list(`actions-box` = TRUE,
-                               size = 10),
-                choices =
-                  list(
-                    "Environmental Measures" = list(
-                      "Wildfire Exposure",
-                      "Heat Exposure",
-                      "Flood Exposure",
-                      "Multihazard Exposure",
-                      "Population Sensitivity",
-                      "Multihazard Exposure and Population Sensitivity",
-                      "Average Impervious Cover",
-                      "Average Tree Cover"
-                    ),
-                    "Air Hazards" = list(
-                      "O3",
-                      "Ozone - CAPCOG",
-                      "Percentile for Ozone level in air",
-                      "PM2.5",
-                      "PM2.5 - CAPCOG",
-                      "Percentile for PM2.5 level in air"
-                    ),
-                    "Demograpic Information" = list(
-                      "Total population",
-                      "Population Density",
-                      "% people of color",
-                      "% low-income",
-                      "% under age 5",
-                      "% over age 64",
-                      "Average Vehicles per person",
-                      "Percent of households without a car"
-                    )
-                  ),
-                selected = "Multihazard Exposure and Population Sensitivity"
-              ),
+              dataInput("data"),
               # ("Variable Information"),
               dataTableOutput("varinfo")
             ),
@@ -382,9 +329,14 @@ ui = shinydashboard::dashboardPage(
 # ------------------------------- #
 
 server <- function(input, output, session) {
+  
+  #Variable to visualize
+  variable <- dataServer("data")
+  
+  
   #create the map
   output$bg <- renderLeaflet({
-    leaflet(austin_map, options = leafletOptions(zoomControl = FALSE)) |>
+    leaflet(variable(), options = leafletOptions(zoomControl = FALSE)) |>
       setView(lng = -97.74,
               lat = 30.30,
               zoom = 10)  |>
@@ -394,11 +346,6 @@ server <- function(input, output, session) {
     }")
   })
   
-  
-  #Variable Select for map 
-  variable <- reactive({
-    austin_map |> dplyr::filter(var == input$var)
-  })
   
   #Address Look up using googleway
   my_address <- reactive({
@@ -418,7 +365,7 @@ server <- function(input, output, session) {
   #Zoom in on address selected
   zoom_block <- reactive({
     if (!is.null(my_address())) {
-      full_blocks <- austin_map |> dplyr::filter(var == input$var)
+      full_blocks <- variable() |> dplyr::filter(var == input$var)
       register_google(key = key, day_limit = 100000)
       lonlat <-
         geocode(location = my_address(), output = "latlona")
@@ -626,7 +573,7 @@ server <- function(input, output, session) {
   #Data for barplot
   bar <- reactive({
     bar <-
-      austin_map |>
+      variable() |>
       dplyr::filter(var == input$var) |>
       mutate(
         `> 50% People of Color` = if_else(`% people of color` >= 0.5, 1, 0),
