@@ -1,0 +1,13 @@
+name: A2SI_Explorer
+title: A2SI_Explorer
+username:
+account: rgk-center
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4342813
+bundleId: 4850108
+url: https://rgk-center.shinyapps.io/A2SI_Explorer/
+when: 1627058235.5368
+lastSyncTime: 1627058235.5378
+asMultiple: FALSE
+asStatic: FALSE

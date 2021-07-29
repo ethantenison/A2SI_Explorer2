@@ -1,0 +1,13 @@
+name: A2SI_Explorer
+title: A2SI_Explorer
+username:
+account: ethan-tenison
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4108503
+bundleId: 4777608
+url: https://ethan-tenison.shinyapps.io/A2SI_Explorer/
+when: 1625154330.75629
+lastSyncTime: 1625154330.75629
+asMultiple: FALSE
+asStatic: FALSE

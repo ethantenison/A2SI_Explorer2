@@ -1,6 +1,6 @@
-# Barplot module 
+#Data Set Module
 
-barplotInput <- function(id) {
+dataInput <- function(id) {
   tagList(
     pickerInput(
       NS(id, "var"),
@@ -41,63 +41,30 @@ barplotInput <- function(id) {
           )
         ),
       selected = "Multihazard Exposure and Population Sensitivity"
-    ),
-    plotlyOutput(NS(id,"barplot"), height = "300px")
+    )
   )
 }
 
-
-barplotServer <- function(id) {
+dataServer <- function(id) {
   moduleServer(id, function(input, output, session) {
-    
     austin_map <- readRDS("./data/austin_composite.rds")
+    austin_map <- as.data.frame(austin_map)
+    austin_map <- st_as_sf(austin_map)
+    austin_map <-
+      st_transform(austin_map, "+proj=longlat +ellps=WGS84 +datum=WGS84")
     austin_map$value <- as.numeric(austin_map$value)
     
     
-    #Data for barplot
-    bar <- reactive({
-      bar <-
-        austin_map |>
-        dplyr::filter(var == input$var) |>
-        mutate(
-          `> 50% People of Color` = if_else(`% people of color` >= 0.5, 1, 0),
-          `> 50% Low Income` = if_else(`% low-income` >= 0.5, 1, 0)
-        )
-      
-      total_av <- mean(bar$value)
-      
-      poc <- bar |> filter(`> 50% People of Color` == 1)
-      poc_av <- mean(poc$value)
-      
-      lowincome <- bar |> filter(`> 50% Low Income` == 1)
-      lowincome_av <- mean(lowincome$value)
-      
-      
-      bar_to_plotly <-
-        data.frame(
-          y = c(total_av, poc_av, lowincome_av),
-          x = c("Austin Average",
-                "> 50% People of Color",
-                "> 50% Low Income")
-        )
-      
-      return(bar_to_plotly)
+    variable <- reactive({
+      austin_map |> dplyr::filter(var == input$var)
     })
     
-    # #Plotly Barplot
-    output$barplot <- renderPlotly({
-      plot_ly(
-        x = bar()$x,
-        y = bar()$y,
-        color = I("#00a65a"),
-        type = 'bar'
-        
-      ) |>
-        config(displayModeBar = FALSE)
-      
+    input <- reactive({
+      input$var
     })
+    
+    
+    #datalist <- list(variable, input)
+    variable
   })
 }
-
-
-

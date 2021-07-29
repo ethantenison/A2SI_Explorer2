@@ -9,9 +9,7 @@
 library(shiny)
 library(shinyjs)
 library(RColorBrewer)
-library(dplyr)
-library(readr)
-library(tidyr)
+library(tidyverse)
 library(leaflet)
 library(leaflet.extras)
 library(sf)
@@ -20,7 +18,6 @@ library(shinyWidgets)
 library(DT)
 library(plotly)
 library(shinydashboard)
-library(shinydashboardPlus)
 library(ggmap)
 library(googleway)
 
@@ -145,85 +142,85 @@ ui = shinydashboard::dashboardPage(
      '
     )
   ), 
-tabItems(
-  tabItem(
-    tabName = "data",
-    fluidRow(
-      column(
-        width = 3,
-        style = 'padding:25px;padding-top:25px;padding-left:30px;',
-        offset = 0,
-        fluidRow(
-          shinydashboard::box(
-            title = "Select a Variable",
-            width = 12,
-            solidHeader = FALSE,
-            status = "primary",
-            background = "light-blue",
-            pickerInput(
-              "var",
-              label = NULL,
-              width = '100%',
-              inline = FALSE,
-              options = list(`actions-box` = TRUE,
-                             size = 10),
-              choices =
-                list(
-                  "Environmental Measures" = list(
-                    "Wildfire Exposure",
-                    "Heat Exposure",
-                    "Flood Exposure",
-                    "Multihazard Exposure",
-                    "Population Sensitivity",
-                    "Multihazard Exposure and Population Sensitivity",
-                    "Average Impervious Cover",
-                    "Average Tree Cover"
+  tabItems(
+    tabItem(
+      tabName = "data",
+      fluidRow(
+        column(
+          width = 3,
+          style = 'padding:25px;padding-top:25px;padding-left:30px;',
+          offset = 0,
+          fluidRow(
+            shinydashboard::box(
+              title = "Select a Variable",
+              width = 12,
+              solidHeader = FALSE,
+              status = "primary",
+              background = "light-blue",
+              pickerInput(
+                "var",
+                label = NULL,
+                width = '100%',
+                inline = FALSE,
+                options = list(`actions-box` = TRUE,
+                               size = 10),
+                choices =
+                  list(
+                    "Environmental Measures" = list(
+                      "Wildfire Exposure",
+                      "Heat Exposure",
+                      "Flood Exposure",
+                      "Multihazard Exposure",
+                      "Population Sensitivity",
+                      "Multihazard Exposure and Population Sensitivity",
+                      "Average Impervious Cover",
+                      "Average Tree Cover"
+                    ),
+                    "Air Hazards" = list(
+                      "O3",
+                      "Ozone - CAPCOG",
+                      "Percentile for Ozone level in air",
+                      "PM2.5",
+                      "PM2.5 - CAPCOG",
+                      "Percentile for PM2.5 level in air"
+                    ),
+                    "Demograpic Information" = list(
+                      "Total population",
+                      "Population Density",
+                      "% people of color",
+                      "% low-income",
+                      "% under age 5",
+                      "% over age 64",
+                      "Average Vehicles per person",
+                      "Percent of households without a car"
+                    )
                   ),
-                  "Air Hazards" = list(
-                    "O3",
-                    "Ozone - CAPCOG",
-                    "Percentile for Ozone level in air",
-                    "PM2.5",
-                    "PM2.5 - CAPCOG",
-                    "Percentile for PM2.5 level in air"
-                  ),
-                  "Demograpic Information" = list(
-                    "Total population",
-                    "Population Density",
-                    "% people of color",
-                    "% low-income",
-                    "% under age 5",
-                    "% over age 64",
-                    "Average Vehicles per person",
-                    "Percent of households without a car"
-                  )
-                ),
-              selected = "Multihazard Exposure and Population Sensitivity"
+                selected = "Multihazard Exposure and Population Sensitivity"
+              ),
+              # ("Variable Information"),
+              dataTableOutput("varinfo")
             ),
-           # ("Variable Information"),
-            dataTableOutput("varinfo")
-          ),
-          
-          shinydashboard::box(
-            title = textOutput("demographic"),
-            width = 12,
-            solidHeader = FALSE,
-            status = "success",
-            background = "green",
-            plotlyOutput("barplot", height = "300px")
-          
-          ),
-          shinydashboard::box(
-            title = "Find your Census Block Group",
-            width = 12,
-            solidHeader = FALSE,
-            status = "danger",
-            background = "red",
-            div(
-              textInput(inputId = "my_address", label = NULL, width = "100%"),
-              HTML(
-                paste0(
-                  " <script>
+            
+            shinydashboard::box(
+              title = textOutput("demographic"),
+              width = 12,
+              solidHeader = FALSE,
+              status = "success",
+              background = "green",
+              plotlyOutput("barplot", height = "300px")
+              
+            ),
+            shinydashboard::box(
+              title = "Find your Census Block Group",
+              width = 12,
+              solidHeader = FALSE,
+              status = "danger",
+              background = "red",
+              div(
+                textInput(inputId = "my_address", label = NULL, width = "100%"),
+                HTML(
+                  paste0(
+                    " <script>
                 function initAutocomplete() {
 
                  var autocomplete =   new google.maps.places.Autocomplete(document.getElementById('my_address'),{types: ['geocode']});
@@ -260,113 +257,113 @@ tabItems(
                  <script src='https://maps.googleapis.com/maps/api/js?key=",
                 key,
                 "&libraries=places&callback=initAutocomplete' async defer></script>"
+                  )
                 )
-              )
-            ),
+              ),
+              
+            )
             
           )
-          
-        )
-      ),
-      column(
-        width = 9,
-        style = 'padding-left:20px; padding-top:25px; padding-right:42px;',
-        offset = 0,
-        fluidRow(
-          shinydashboard::box(
-            title = "Austin Area by Census Block Group",
-            width = 12,
-            solidHeader = FALSE,
-            status = "primary",
-            background = "light-blue",
-            leafletOutput("bg", height = 800)
-            
-            
-          )
-        )
-        
-      )
-      
-    )),
-  tabItem(tabName = "definitions",
+        ),
+        column(
+          width = 9,
+          style = 'padding-left:20px; padding-top:25px; padding-right:42px;',
+          offset = 0,
           fluidRow(
             shinydashboard::box(
-              title = "Variables and definitions",
+              title = "Austin Area by Census Block Group",
               width = 12,
               solidHeader = FALSE,
               status = "primary",
-              dataTableOutput("definitions")
-            ),
-            
-          )),
-  tabItem(
-    tabName = "about",
-    fluidRow(
-      shinydashboard::box(
-        title = "Goals of this Project",
-        width = 6,
-        solidHeader = FALSE,
-        status = "primary",
-      ),
-      shinydashboard::box(
-        title = "About A2SI",
-        width = 6,
-        solidHeader = FALSE,
-        status = "primary",
-      ),
-      
-    )
-  ),
-  tabItem(
-    tabName = "attributions",
-    fluidRow(
-      userBox(
-        title = userDescription(
-          title = "Phoebe Romero",
-          subtitle = "Environmental Program Coordinator",
-          image = "images/Phoebe 2.jpg",
-          type = 2
+              background = "light-blue",
+              leafletOutput("bg", height = 800)
+              
+              
+            )
+          )
+          
+        )
+        
+      )),
+    tabItem(tabName = "definitions",
+            fluidRow(
+              shinydashboard::box(
+                title = "Variables and definitions",
+                width = 12,
+                solidHeader = FALSE,
+                status = "primary",
+                dataTableOutput("definitions")
+              ),
+              
+            )),
+    tabItem(
+      tabName = "about",
+      fluidRow(
+        shinydashboard::box(
+          title = "Goals of this Project",
+          width = 6,
+          solidHeader = FALSE,
+          status = "primary",
         ),
-        status = "primary",
-        "Phoebe Romero is passionate about the intersection of climate policy and racial equity. She currently works at the City of Austin Office of Sustainability focusing on air quality and climate action that reduces environmental impact and improves quality of life outcomes for historically impacted communities."
-      ),
-      userBox(
-        title = userDescription(
-          title = "Marc Coudert",
-          subtitle = "Environmental Conservation Program Manager",
-          image = "images/Coudert-sm.jpg",
-          type = 2
+        shinydashboard::box(
+          title = "About A2SI",
+          width = 6,
+          solidHeader = FALSE,
+          status = "primary",
         ),
-        status = "primary",
-        "As an employee of the City of Austin Office of Sustainability, Marc works with city departments to embed climate change resiliency into long term operation and asset management planning. In this role, he also supports community organizers to increase climate resilience in the Eastern Crescent."
+        
       )
     ),
-    br(),
-    br(),
-    fluidRow(
-      userBox(
-        title = userDescription(
-          title = "Ethan Tenison",
-          subtitle = "Project Manager for RGK Data Initiaves",
-          image = "images/ethan.jpg",
-          type = 2
+    tabItem(
+      tabName = "attributions",
+      fluidRow(
+        userBox(
+          title = userDescription(
+            title = "Phoebe Romero",
+            subtitle = "Environmental Program Coordinator",
+            image = "images/Phoebe 2.jpg",
+            type = 2
+          ),
+          status = "primary",
+          "Phoebe Romero is passionate about the intersection of climate policy and racial equity. She currently works at the City of Austin Office of Sustainability focusing on air quality and climate action that reduces environmental impact and improves quality of life outcomes for historically impacted communities."
         ),
-        status = "primary",
-        "Ethan manages and evaluates the RGK Center's data initiatives at the University of Texas at Austin. He holds a masters degree in Global Policy Studies from the LBJ School of Public Affairs specializing in Data Science for Policy Analysis."
+        userBox(
+          title = userDescription(
+            title = "Marc Coudert",
+            subtitle = "Environmental Conservation Program Manager",
+            image = "images/Coudert-sm.jpg",
+            type = 2
+          ),
+          status = "primary",
+          "As an employee of the City of Austin Office of Sustainability, Marc works with city departments to embed climate change resiliency into long term operation and asset management planning. In this role, he also supports community organizers to increase climate resilience in the Eastern Crescent."
+        )
       ),
-      userBox(
-        title = userDescription(
-          title = "Patrick Bixler",
-          subtitle = "Assistant Professor",
-          image = "images/thumbnail_Bixler Headshot.jpg",
-          type = 2
+      br(),
+      br(),
+      fluidRow(
+        userBox(
+          title = userDescription(
+            title = "Ethan Tenison",
+            subtitle = "Project Manager for RGK Data Initiaves",
+            image = "images/ethan.jpg",
+            type = 2
+          ),
+          status = "primary",
+          "Ethan manages and evaluates the RGK Center's data initiatives at the University of Texas at Austin. He holds a masters degree in Global Policy Studies from the LBJ School of Public Affairs specializing in Data Science for Policy Analysis."
         ),
-        status = "primary",
-        "Patrick Bixler is an Assistant Professor at the LBJ School of Public Affairs, core faculty at the RGK Center for Philanthropy and Community Service, and has a joint appointment in the Community and Regional Planning program at the University of Texas. He directs the Austin Area Sustainability Indicators project and co-leads a Planet Texas 2050 Flagship initiative."
+        userBox(
+          title = userDescription(
+            title = "Patrick Bixler",
+            subtitle = "Assistant Professor",
+            image = "images/thumbnail_Bixler Headshot.jpg",
+            type = 2
+          ),
+          status = "primary",
+          "Patrick Bixler is an Assistant Professor at the LBJ School of Public Affairs, core faculty at the RGK Center for Philanthropy and Community Service, and has a joint appointment in the Community and Regional Planning program at the University of Texas. He directs the Austin Area Sustainability Indicators project and co-leads a Planet Texas 2050 Flagship initiative."
+        )
       )
     )
   )
-)
   )
 )
 
@@ -457,7 +454,7 @@ server <- function(input, output, session) {
     
   })
   
-
+  
   #Color Palette for Map
   pal <- reactive({
     colorNumeric(
@@ -485,9 +482,9 @@ server <- function(input, output, session) {
     
     DT::datatable(definitions,
                   options = list(
-                  pageLength = 25)
+                    pageLength = 25)
     )
-    )
+  )
   
   #Variable info table
   varinfo_reactive <- reactive({
@@ -617,14 +614,14 @@ server <- function(input, output, session) {
     
     
     
-  
+    
     proxy
     
     
     
   })
   
-
+  
   
   #Data for barplot
   bar <- reactive({
