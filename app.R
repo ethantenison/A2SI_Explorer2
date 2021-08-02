@@ -32,9 +32,10 @@ options(scipen = 999)
 
 source("data/key.r")
 source("datamod.r")
+source("barplot.r")
+
 set_key(key = key)
 
-definitions <- read_csv("data/definitions.csv")
 
 # ------------------------------- #
 # ------------------------------- #
@@ -143,9 +144,7 @@ ui = shinydashboard::dashboardPage(
               solidHeader = FALSE,
               status = "primary",
               background = "light-blue",
-              dataInput("data"),
-              # ("Variable Information"),
-              dataTableOutput("varinfo")
+              dataUI("data")
             ),
             
             shinydashboard::box(
@@ -154,7 +153,7 @@ ui = shinydashboard::dashboardPage(
               solidHeader = FALSE,
               status = "success",
               background = "green",
-              plotlyOutput("barplot", height = "300px")
+              barplotUI("barplot")
               
             ),
             shinydashboard::box(
@@ -331,7 +330,9 @@ ui = shinydashboard::dashboardPage(
 server <- function(input, output, session) {
   
   #Variable to visualize
-  variable <- dataServer("data")
+  data <- dataServer("data")
+  variable <- data$df
+  selected <- data$var
   
   
   #create the map
@@ -560,65 +561,19 @@ server <- function(input, output, session) {
     }
     
     
-    
-    
     proxy
     
     
     
   })
-  
-  
-  
-  #Data for barplot
-  bar <- reactive({
-    bar <-
-      variable() |>
-      dplyr::filter(var == input$var) |>
-      mutate(
-        `> 50% People of Color` = if_else(`% people of color` >= 0.5, 1, 0),
-        `> 50% Low Income` = if_else(`% low-income` >= 0.5, 1, 0)
-      )
-    
-    total_av <- mean(bar$value)
-    
-    poc <- bar |> filter(`> 50% People of Color` == 1)
-    poc_av <- mean(poc$value)
-    
-    lowincome <- bar |> filter(`> 50% Low Income` == 1)
-    lowincome_av <- mean(lowincome$value)
-    
-    
-    bar_to_plotly <-
-      data.frame(
-        y = c(total_av, poc_av, lowincome_av),
-        x = c("Austin Average",
-              "> 50% People of Color",
-              "> 50% Low Income")
-      )
-    
-    bar_to_plotly
-  })
-  
-  
-  # #Plotly Barplot
-  output$barplot <- renderPlotly({
-    plot_ly(
-      x = bar()$x,
-      y = bar()$y,
-      color = I("#00a65a"),
-      type = 'bar'
-      
-    ) |>
-      config(displayModeBar = FALSE)
-    
-  })
-  
+
+  #Plotly Barplot
+  barplotServer("barplot", data = variable)
   
   #Bar Plot header
   output$demographic <-
     renderText({
-      paste0(input$var, " By Major Demographic Groups")
+      paste0(selected(), " By Major Demographic Groups")
     })
   
   #pop up on launch

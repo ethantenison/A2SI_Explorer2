@@ -1,6 +1,6 @@
 #Data Set Module
 
-dataInput <- function(id) {
+dataUI <- function(id) {
   tagList(
     pickerInput(
       NS(id, "var"),
@@ -41,12 +41,43 @@ dataInput <- function(id) {
           )
         ),
       selected = "Multihazard Exposure and Population Sensitivity"
+    ),
+    dataTableOutput(
+      NS(id,"varinfo")
     )
   )
 }
 
 dataServer <- function(id) {
   moduleServer(id, function(input, output, session) {
+    
+    #Variable Info Table
+    definitions <- read_csv("data/definitions.csv")
+    
+    varinfo_reactive <- reactive({
+      def <- definitions |> filter(Variable == input$var) |> 
+        select(-c(Variable))
+      def <- t(def)
+      colnames(def) <- " "
+      def
+    })
+    
+    output$varinfo <- DT::renderDataTable({
+      DT::datatable(
+        varinfo_reactive(),
+        escape = FALSE,
+        options = list(
+          lengthChange = FALSE,
+          info = FALSE,
+          paging = FALSE,
+          ordering = FALSE
+        )
+      )
+    })
+    
+    
+    
+    #Variable and Data Reactivity 
     austin_map <- readRDS("./data/austin_composite.rds")
     austin_map <- as.data.frame(austin_map)
     austin_map <- st_as_sf(austin_map)
@@ -55,9 +86,11 @@ dataServer <- function(id) {
     austin_map$value <- as.numeric(austin_map$value)
     
     
-    variable <- reactive({
-      austin_map |> dplyr::filter(var == input$var)
-    })
+    
+    list(
+      var = reactive(input$var),
+      df = reactive(austin_map |> dplyr::filter(var == input$var))
+    )
     
   
   })
