@@ -29,12 +29,13 @@ library(googleway)
 # ------------------------------- #
 
 options(scipen = 999)
-
 source("data/key.r")
+set_key(key = key)
+
+#Modules
 source("datamod.r")
 source("barplot.r")
 
-set_key(key = key)
 
 
 # ------------------------------- #
@@ -366,7 +367,7 @@ server <- function(input, output, session) {
   #Zoom in on address selected
   zoom_block <- reactive({
     if (!is.null(my_address())) {
-      full_blocks <- variable() |> dplyr::filter(var == input$var)
+      full_blocks <- variable()
       register_google(key = key, day_limit = 100000)
       lonlat <-
         geocode(location = my_address(), output = "latlona")
@@ -433,29 +434,6 @@ server <- function(input, output, session) {
                     pageLength = 25)
     )
   )
-  
-  #Variable info table
-  varinfo_reactive <- reactive({
-    def <- definitions |> filter(Variable == input$var) |> 
-      select(-c(Variable))
-    def <- t(def)
-    colnames(def) <- " "
-    def
-  })
-  
-  output$varinfo <- DT::renderDataTable({
-    DT::datatable(
-      varinfo_reactive(),
-      escape = FALSE,
-      options = list(
-        lengthChange = FALSE,
-        info = FALSE,
-        paging = FALSE,
-        ordering = FALSE
-      )
-    )
-  })
-  
   
   #Map attributes to display
   observe({
@@ -594,12 +572,10 @@ server <- function(input, output, session) {
       lonlat <- paste0(lonlat[1], ", ", lonlat[2])
       censusblock_tovisualize <-
         st_join(spatial_point, variable(), left = FALSE)
-      print(paste0(input$var, ": ", censusblock_tovisualize[['value']]))
-      print(paste0(input$var, "average: ", mean(censusblock_tovisualize[['value']])))
+      print(paste0(selected(), ": ", censusblock_tovisualize[['value']]))
+      print(paste0(selected(), "average: ", mean(censusblock_tovisualize[['value']])))
     }
   })
-  
-  
   
 }
 
