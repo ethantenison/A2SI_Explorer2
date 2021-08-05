@@ -23,6 +23,8 @@ library(sf)
 library(janitor)
 library(readr)
 library(tidyverse)
+library(raster)
+library(units)
 
 df_raw <- read_excel("data/2021_01_06_Climate Vulnerability Composite Score_MASTER FILE.xlsx", 
     sheet = "Composite (exp+vul) score", 
@@ -46,6 +48,7 @@ vul_raw <- read_excel("data/2021_01_06_Climate Vulnerability Composite Score_MAS
 
 bg_raw <- st_read("data/shape_files/tl_2019_48_bg.shp", stringsAsFactors = FALSE)
 bg_raw <-st_transform(bg_raw,"+proj=longlat +ellps=WGS84 +datum=WGS84")
+bg_raw$area <- st_area(bg_raw) |> set_units(mi^2)
 
 ej_raw <- read_csv("data/EJSCREEN_2020_USPR.csv")
 
@@ -79,6 +82,13 @@ capcog_oz_raw  <-st_transform(capcog_oz_raw ,"+proj=longlat +ellps=WGS84 +datum=
 
 capcog_pm2.5_raw <- st_read("data/shape_files/Fine_Particulate_Matter_Modeling.shp") |> clean_names()
 capcog_pm2.5_raw  <-st_transform(capcog_pm2.5_raw ,"+proj=longlat +ellps=WGS84 +datum=WGS84")
+
+capcogcensus <- read_csv("data/ACSDT5Y2019.B01003_data_with_overlays_2021-08-02T184911.csv") |>
+    row_to_names(row_number =1) |>
+    clean_names() |> 
+    mutate(id = str_sub(id, 10, -1)) |> 
+    rename(population = estimate_total) |> 
+    dplyr::select(-c(margin_of_error_total))
 ```
 
 
@@ -108,7 +118,7 @@ car_household$`Estimate!!Total:` <- as.numeric(car_household$`Estimate!!Total:`)
 car_household$`No Car` <- car_household$`Estimate!!Total:!!Owner occupied:!!No vehicle available` + car_household$`Estimate!!Total:!!Renter occupied:!!No vehicle available`
 car_household$`Percent of households without a car` <- car_household$`No Car`/car_household$`Estimate!!Total:`
 
-car_household <- car_household |> select(id,`Percent of households without a car` )
+car_household <- car_household |> dplyr::select(id,`Percent of households without a car` )
 
 ```
 
@@ -117,7 +127,7 @@ car_household <- car_household |> select(id,`Percent of households without a car
 
 ```{r capcog}
 cap_ozone <- capcog_oz_raw |> 
-    select(fid, fourth_hig, geometry) |> 
+    dplyr::select(fid, fourth_hig, geometry) |> 
     mutate(var = "Ozone - CAPCOG",
            "Total population" = 100000,
            "% people of color" = 0.8,
@@ -127,7 +137,7 @@ cap_ozone <- capcog_oz_raw |>
 
 
 cap_pm2.5 <- capcog_pm2.5_raw |> 
-    select(fid, b_pm25_ann, geometry) |> 
+    dplyr::select(fid, b_pm25_ann, geometry) |> 
     mutate(var = "PM2.5 - CAPCOG",
            "Total population" = 100000,
            "% people of color" = 0.8,
@@ -147,9 +157,9 @@ cap_pm2.5 <- capcog_pm2.5_raw |>
 ```{r}
 
 #Minor Cleaning
-df <- df_raw[1:640,]
+df_composite <- df_raw[1:640,]
 
-df$`SVI+Flood`[is.na(df$`SVI+Flood`)] <- 0
+df_composite$`SVI+Flood`[is.na(df_composite$`SVI+Flood`)] <- 0
 
 ej_columns <- ej_columns_raw[-2,]
 
@@ -169,11 +179,11 @@ ej$`Percentile for PM2.5 level in air` <-
     ej$`Percentile for PM2.5 level in air` * 0.01
 
 lur <-
-    caces_lur_raw |> select(fips, pollutant, pred_wght) |> spread(pollutant, pred_wght)
+    caces_lur_raw |> dplyr::select(fips, pollutant, pred_wght) |> spread(pollutant, pred_wght)
 lur$fips <- as.character(lur$fips)
 
 rcm <- caces_rcm_raw |> filter(season == "fall") |>
-    select(fips, pollutant, damage) |>
+    dplyr::select(fips, pollutant, damage) |>
     spread(pollutant, damage) |>
     rename(
         "NH3 Damage ($)" = "nh3",
@@ -183,21 +193,22 @@ rcm <- caces_rcm_raw |> filter(season == "fall") |>
     )
 rcm$fips <- as.character(rcm$fips)
 
-bg <- BG_xwalk_raw |> select(GEOID,Avg_Imperv, Count, Count_Tree, Avg_Tree, Index)
+bg <- BG_xwalk_raw |> dplyr::select(GEOID,Avg_Imperv, Count, Count_Tree, Avg_Tree, Index)
 bg$GEOID <- as.character(bg$GEOID)
 
 #merging  
 df <-
-    df |>
-    left_join(bg_raw, by = c("GEOID_" = "GEOID")) |>
-    left_join(ej, by = c("GEOID_" = "Census FIPS code for block group")) |>
-    left_join(exposure_raw, by = "GEOID_") |>
-    left_join(vul_raw, by = c("GEOID_" = "ID_Blk_Grp")) |>
-    left_join(car, by = c("GEOID_" = "id")) |>
-    left_join(car_household, by = c("GEOID_" = "id")) |>
-    left_join(lur, by = c("GEOID_" = "fips")) |>
-    left_join(rcm, by = c("GEOID_" = "fips")) |>
-    left_join(bg, by = c("GEOID_" = "GEOID")) |> 
+    capcogcensus |> 
+    left_join(df_composite, by = c("id" = "GEOID_")) |>
+    left_join(bg_raw, by = c("id" = "GEOID")) |>
+    left_join(ej, by = c("id" = "Census FIPS code for block group")) |>
+    left_join(exposure_raw, by = c("id" = "GEOID_")) |>
+    left_join(vul_raw, by = c("id" = "ID_Blk_Grp")) |>
+    left_join(car, by = "id") |>
+    left_join(car_household, by = c("id" = "id")) |>
+    left_join(lur, by = c("id" = "fips")) |>
+    left_join(rcm, by = c("id" = "fips")) |>
+    left_join(bg, by = c("id" = "GEOID")) |> 
     rename(
         "Multihazard Exposure" = "Norm_Composite (Norm)",
         "Social Vulnerability Score" = "SVI Score (0-1)",
@@ -213,10 +224,11 @@ df <-
         "PM2.5" = "pm25",
         "SO2" = "so2",
         "Average Impervious Cover" = "Avg_Imperv",
-        "Average Tree Cover" = "Avg_Tree"
+        "Average Tree Cover" = "Avg_Tree",
+        "Population" = "population"
     ) |>
-    select(
-        GEOID_,
+    dplyr::select(
+        id,
         "Wildfire Exposure",
         "Heat Exposure",
         "Flood Exposure",
@@ -225,61 +237,67 @@ df <-
         "Climate Exposure and Climate Vulnerability",
         "Percentile for Ozone level in air" ,
         "Percentile for PM2.5 level in air",
-        "Total population",
+        "Population",
         "% people of color",
         "% low-income",
         "% under age 5",
         "% over age 64",
         "Aggregate Vehicles",
         "Percent of households without a car",
-        "CO",
-        "NO2",
-        "SO2",
-        "O3",
+        # "CO",
+        # "NO2",
+        # "SO2",
+        # "O3",
         "PM10",
         "PM2.5",
         "Average Impervious Cover",
         "Average Tree Cover",
         "Shape area",
+        "area",
         geometry
         
     )
 
 
+df$Population <- as.numeric(df$Population)
 df$`Average Vehicles per person` <-
-    df$`Aggregate Vehicles` / df$`Total population`
+    df$`Aggregate Vehicles` / df$`Population`
 
-df <- df |> select(-c("Aggregate Vehicles"))
+df <- df |> dplyr::select(-c("Aggregate Vehicles"))
 df$`Average Vehicles per person`[df$`Average Vehicles per person` == 0] <-
     0.5
 
+df$area <- as.numeric(df$area)
+
 df$`Population Density` <-
-    df$`Total population` / df$`Shape area` 
-df$`Population Density`[df$`Population Density`== Inf] <- 0
-df <- mutate(df, `Population Density` = `Population Density` * 27878400)
-df$`Population Density`[df$`Population Density`== 0] <- 197
+    df$`Population` / df$`area` 
+df$`Population Density`[df$`Population Density`== Inf] <- 1
+df$`Population Density`[df$`Population Density`== 0] <- 1
+df$`Log Population Density` <- log(df$`Population Density`)
+#df$`Population Density`[df$`Population Density`== 0] <- 197
 
 
-geometry <- select(df,
-                   GEOID_,
+geometry <- dplyr::select(df,
+                   id,
                    geometry,
-                   "Total population",
+                   "Population",
                    "% people of color",
                    "% low-income",)
 df <-
     df |>
-    select(
-        GEOID_,
+    dplyr::select(
+        id,
         "Average Vehicles per person",
         "Percent of households without a car",
-        "Population Density", #YOu need to add variables here if they are at the end
+        "Population Density",
+        "Log Population Density",#YOu need to add variables here if they are at the end
         everything()
     ) |>
     mutate(across(everything(), as.character)) |>
-    pivot_longer(cols = 2:26, #This has to be adjusted when you add or remove variables 
+    pivot_longer(cols = 2:23, #This has to be adjusted when you add or remove variables 
                  names_to = "var",
                  values_to = "value") |>
-    select(GEOID_, var, value) |>
+    dplyr::select(id, var, value) |>
     left_join(geometry)
 
 
@@ -297,10 +315,10 @@ df$var[df$var == "Social Vulnerability Score"] <-
 #The airport is skewing the visualizations
 df$value[df$var == "PM2.5" & df$value == 0] <- 8
 df$value[df$var == "PM10" & df$value == 0] <- 22
-df$value[df$var == "CO" & df$value == 0] <- 0.2
-df$value[df$var == "NO2" & df$value == 0] <- 3
-df$value[df$var == "SO2" & df$value == 0] <- 0.9
-df$value[df$var == "O3" & df$value == 0] <- 43
+# df$value[df$var == "CO" & df$value == 0] <- 0.2
+# df$value[df$var == "NO2" & df$value == 0] <- 3
+# df$value[df$var == "SO2" & df$value == 0] <- 0.9
+# df$value[df$var == "O3" & df$value == 0] <- 43
 
 df <- bind_rows(df, cap_ozone, cap_pm2.5)
 

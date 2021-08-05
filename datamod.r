@@ -12,7 +12,6 @@ dataUI <- function(id) {
       choices =
         list(
           "Air Hazards" = list(
-            "O3",
             "Ozone - CAPCOG",
             "Percentile for Ozone level in air",
             "PM2.5",
@@ -30,8 +29,9 @@ dataUI <- function(id) {
             "Average Tree Cover"
           ),
           "Demograpic Information" = list(
-            "Total population",
+            "Population",
             "Population Density",
+            "Log Population Density",
             "% people of color",
             "% low-income",
             "% under age 5",
@@ -56,7 +56,7 @@ dataServer <- function(id) {
     
     varinfo_reactive <- reactive({
       def <- definitions |> filter(Variable == input$var) |> 
-        select(-c(Variable))
+        select(-c(Variable, "Additional Information", Units))
       def <- t(def)
       colnames(def) <- " "
       def

@@ -18,6 +18,7 @@ library(shinyWidgets)
 library(DT)
 library(plotly)
 library(shinydashboard)
+library(shinydashboardPlus)
 library(ggmap)
 library(googleway)
 
@@ -35,6 +36,10 @@ set_key(key = key)
 #Modules
 source("datamod.r")
 source("barplot.r")
+definitions <- read_csv("data/definitions.csv") |>
+  select(-c("Additional Information")) |> 
+  mutate(Units = replace_na(Units, ""))
+
 
 
 
@@ -101,26 +106,8 @@ ui = shinydashboard::dashboardPage(
     )
     
   ),
-  body = shinydashboard::dashboardBody(tags$head(tags$style(
-    HTML(
-      '
-          .myClass {
-                  font-size: 20px;
-                  line-height: 50px;
-                  text-align: left;
-                  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-                  padding: 0 15px;
-                  overflow: hidden;
-                  color: black;
-          }
-          .dropdown-header .text { font-weight: bold }
-          .dataTables_filter {
-          display: none;
-          }
-
-        '
-    )
-  )),
+  body = shinydashboard::dashboardBody(tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")),
   tags$script(
     HTML(
       '
@@ -224,8 +211,7 @@ ui = shinydashboard::dashboardPage(
               status = "primary",
               background = "light-blue",
               leafletOutput("bg", height = 800)
-              
-              
+ 
             )
           )
           
@@ -242,7 +228,8 @@ ui = shinydashboard::dashboardPage(
                 dataTableOutput("definitions")
               ),
               
-            )),
+            )
+            ),
     tabItem(
       tabName = "about",
       fluidRow(
@@ -339,9 +326,9 @@ server <- function(input, output, session) {
   #create the map
   output$bg <- renderLeaflet({
     leaflet(variable(), options = leafletOptions(zoomControl = FALSE)) |>
-      setView(lng = -97.74,
-              lat = 30.30,
-              zoom = 10)  |>
+      setView(lng = -97.5330332291251,
+              lat = 30.282125904548206,
+              zoom = 9)  |>
       addProviderTiles(providers$CartoDB.Positron) |>
       htmlwidgets::onRender("function(el, x) {
         L.control.zoom({ position: 'topright' }).addTo(this)
@@ -384,9 +371,9 @@ server <- function(input, output, session) {
       censusblock_tovisualize <-
         censusblock_tovisualize[!is.na(censusblock_tovisualize$address), ]
       censusblock_tovisualize <-
-        censusblock_tovisualize[['GEOID_']]
+        censusblock_tovisualize[['id']]
       tovisualize <-
-        full_blocks |> filter(GEOID_ == censusblock_tovisualize) |> bind_cols(lonlat)
+        full_blocks |> filter(id == censusblock_tovisualize) |> bind_cols(lonlat)
       tovisualize
     }
     
@@ -414,26 +401,23 @@ server <- function(input, output, session) {
     )
   })
   
-  labels <- reactive({
-    
-    mini <- as.character(signif(min(variable()$value)), digits = 2)
-    max <- as.character(signif(max(variable()$value)), digits = 2)
-    first <- as.character(signif(quantile(variable()$value, 0.25)), digits = 2)
-    third <- as.character(signif(quantile(variable()$value, 0.75)), digits = 2)
-    med <- as.character(signif(median(variable()$value)), digits = 2)
-    
-    labels <- c(paste0(mini, " Low"), first, med, third, paste(max, " High"))
-    labels
-  })
-  
   #Definition Table
   output$definitions <- renderDataTable(
+  
     
     DT::datatable(definitions,
                   options = list(
                     pageLength = 25)
     )
   )
+  
+  #Legend Title
+  legend_title <- reactive({
+    units <- definitions |> dplyr::filter(Variable == selected())
+    units <- units$Units 
+    
+    paste0(selected(), "</br>", "<h5>", units, "</h5>")
+  })
   
   #Map attributes to display
   observe({
@@ -463,10 +447,10 @@ server <- function(input, output, session) {
           format(variable()$value, digits = 1),
           "<h6/>",
           "Census Block Group: ",
-          GEOID_,
+          id,
           "<h6/>",
           "Total population: ",
-          format(variable()$`Total population`, big.mark = ","),
+          format(variable()$`Population`, big.mark = ","),
           "<h6/>",
           "People of Color (%): ",
           format(variable()$`% people of color`, digits = 1),
@@ -479,11 +463,7 @@ server <- function(input, output, session) {
         "bottomright",
         pal = pal(),
         values = ~ variable()$value,
-        title = input$var,
-        labFormat = function(type, cuts, p) {
-          # Here's the trick
-          paste0(labels())
-        }
+        title = legend_title(),
       )
     
     if (!is.null(my_address())) {
@@ -513,10 +493,10 @@ server <- function(input, output, session) {
             format(zoom_block()$value, digits = 1),
             "<h6/>",
             "Census Block Group: ",
-            GEOID_,
+            id,
             "<h6/>",
             "Total population: ",
-            format(zoom_block()$`Total population`, big.mark = ","),
+            format(zoom_block()$`Population`, big.mark = ","),
             "<h6/>",
             "People of Color (%): ",
             format(zoom_block()$`% people of color`, digits = 1),

@@ -1,0 +1,15 @@
+.myClass {
+        font-size: 20px;
+        line-height: 50px;
+        text-align: left;
+        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+        padding: 0 15px;
+        overflow: hidden;
+        color: black;
+}
+.dropdown-header .text {
+	font-weight: bold 
+}
+.dataTables_filter {
+	display: none;
+}
