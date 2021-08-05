@@ -40,7 +40,7 @@ dataUI <- function(id) {
             "Percent of households without a car"
           )
         ),
-      selected = "Multihazard Exposure and Population Sensitivity"
+      selected = "Percentile for PM2.5 level in air"
     ),
     dataTableOutput(
       NS(id,"varinfo")

@@ -27,7 +27,7 @@ barplotServer <- function(id, data) {
       bar_to_plotly <-
         data.frame(
           y = c(total_av, poc_av, lowincome_av),
-          x = c("Austin Average",
+          x = c("Region Average",
                 "> 50% People of Color",
                 "> 50% Low Income")
         )

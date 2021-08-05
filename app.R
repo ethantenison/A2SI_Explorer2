@@ -8,6 +8,7 @@
 
 library(shiny)
 library(shinyjs)
+library(rintrojs)
 library(RColorBrewer)
 library(tidyverse)
 library(leaflet)
@@ -40,9 +41,6 @@ definitions <- read_csv("data/definitions.csv") |>
   select(-c("Additional Information")) |> 
   mutate(Units = replace_na(Units, ""))
 
-
-
-
 # ------------------------------- #
 # ------------------------------- #
 # ------------SECTION:----------- #
@@ -73,7 +71,8 @@ ui = shinydashboard::dashboardPage(
   sidebar = shinydashboard::dashboardSidebar(
     useShinyjs(),
     shinyjs::extendShinyjs(text = jsToggleFS, functions = "toggleFullScreen"),
-    collapsed = TRUE,
+    introjsUI(),
+    collapsed = FALSE,
     sidebarMenu(
       id = "tabs",
       menuItem(
@@ -81,7 +80,12 @@ ui = shinydashboard::dashboardPage(
         tabName = "data",
         icon = icon("project-diagram")
       ),
-      conditionalPanel(condition = "input.tabs == 'data'"),
+      conditionalPanel(condition = "input.tabs == 'data'",
+                       actionButton("help",
+                                    "Tutorial",
+                                    icon = icon("book-open",
+                                                class = "fa-pull-left"),
+                                    width = '200px')),
       menuItem(
         "Variable Definitions",
         tabName = "definitions",
@@ -132,17 +136,18 @@ ui = shinydashboard::dashboardPage(
               solidHeader = FALSE,
               status = "primary",
               background = "light-blue",
+              div(id = "select_intro",
               dataUI("data")
-            ),
-            
+            )),
             shinydashboard::box(
               title = textOutput("demographic"),
               width = 12,
               solidHeader = FALSE,
               status = "success",
               background = "green",
+              div(id = "demo_intro",
               barplotUI("barplot")
-              
+            )
             ),
             shinydashboard::box(
               title = "Find your Census Block Group",
@@ -150,7 +155,7 @@ ui = shinydashboard::dashboardPage(
               solidHeader = FALSE,
               status = "danger",
               background = "red",
-              div(
+              div(id = "my_address_intro",
                 textInput(inputId = "my_address", label = NULL, width = "100%"),
                 HTML(
                   paste0(
@@ -210,7 +215,9 @@ ui = shinydashboard::dashboardPage(
               solidHeader = FALSE,
               status = "primary",
               background = "light-blue",
+              div(id = 'map_intro',
               leafletOutput("bg", height = 800)
+              )
  
             )
           )
@@ -219,6 +226,9 @@ ui = shinydashboard::dashboardPage(
         
       )),
     tabItem(tabName = "definitions",
+            column(
+              width = 10,
+              offset = 1,
             fluidRow(
               shinydashboard::box(
                 title = "Variables and definitions",
@@ -226,7 +236,7 @@ ui = shinydashboard::dashboardPage(
                 solidHeader = FALSE,
                 status = "primary",
                 dataTableOutput("definitions")
-              ),
+              )),
               
             )
             ),
@@ -317,6 +327,32 @@ ui = shinydashboard::dashboardPage(
 
 server <- function(input, output, session) {
   
+  
+  # start introjs when button is pressed with custom options and events
+  observeEvent(input$help,
+               introjs(session, options = list(
+                 steps = data.frame(element = c("#select_intro",
+                                                "#demo_intro",
+                                                "#my_address_intro",
+                                                "#map_intro"
+                 ),
+                 intro = c(includeMarkdown("tooltips/select_intro.md"),
+                           includeMarkdown("tooltips/demographic_intro.md"),
+                           includeMarkdown("tooltips/my_address_intro.md"),
+                           includeMarkdown("tooltips/map_intro.md")
+                 ),
+                 position = c("auto",
+                              "auto",
+                              "auto",
+                              "auto"
+                 )
+                 ),
+                 "nextLabel"="Next",
+                 "prevLabel"="Previous",
+                 "skipLabel"="Exit"),
+               )
+  )
+  
   #Variable to visualize
   data <- dataServer("data")
   variable <- data$df
@@ -393,12 +429,21 @@ server <- function(input, output, session) {
   
   #Color Palette for Map
   pal <- reactive({
-    colorNumeric(
-      palette = "RdBu",
-      n = 10,
-      reverse = TRUE,
-      domain = variable()$value
-    )
+    if (selected() == "Flood Exposure") {
+      colorNumeric(
+        palette = "RdBu",
+        n = 10,
+        reverse = FALSE,
+        domain = variable()$value
+      )
+    } else {
+      colorNumeric(
+        palette = "RdBu",
+        n = 10,
+        reverse = TRUE,
+        domain = variable()$value
+      )
+    }
   })
   
   #Definition Table
@@ -407,7 +452,7 @@ server <- function(input, output, session) {
     
     DT::datatable(definitions,
                   options = list(
-                    pageLength = 25)
+                    pageLength = 10)
     )
   )
   
@@ -535,11 +580,11 @@ server <- function(input, output, session) {
     })
   
   #pop up on launch
-  query_modal <- modalDialog(title = "Important message",
-                             includeMarkdown("tooltips/intro.md"),
-                             easyClose = F)
-  
-  showModal(query_modal)
+  # query_modal <- modalDialog(title = "Important message",
+  #                            includeMarkdown("tooltips/intro.md"),
+  #                            easyClose = F)
+  # 
+  # showModal(query_modal)
   
   
   #Rendering Text for address look up
