@@ -325,3 +325,43 @@ df <- bind_rows(df, cap_ozone, cap_pm2.5)
 saveRDS(df, "data/austin_composite.rds")
 
 ```
+
+
+```{r asthma}
+library(tidycensus)
+
+asthma <- read_rds("data/asthma_prevalence_2017_capcog.rds") |> 
+    mutate(child_prev = child_prev * 10000,
+           adult_prev = adult_prev * 10000,
+           total_prev = total_prev * 10000) |> 
+    select(GEOID, child_prev, adult_prev, total_prev, geometry) |> 
+    pivot_longer(cols = child_prev:total_prev,  
+                 names_to = "var",
+                 values_to = "value") 
+
+#acs variables 
+vars <- c("B02001_001", "B02001_002", "B06012_002", "B06012_003" )
+
+#enter your key census_api_key("Your key here")
+acs <- x <-get_acs(state="TX", geography="tract",year = 2017, variables=vars, geometry=FALSE)
+
+acs2 <- acs |> 
+    pivot_wider(names_from = variable, values_from = c(estimate, moe)) |> 
+    rename("Population" = estimate_B02001_001,
+           "white" = estimate_B02001_002,
+           "below_poverty" = estimate_B06012_002,
+           "between_poverty" = estimate_B06012_003) |>
+    mutate("% people of color" = (Population-white)/Population,
+           "% low-income" = (below_poverty + between_poverty)/Population) |> 
+    select(GEOID, Population, "% people of color", "% low-income")
+
+asthma <- asthma |> 
+    left_join(acs2, by = "GEOID")
+
+
+asthma <- st_as_sf(asthma) |> 
+  st_transform("+proj=longlat +ellps=WGS84 +datum=WGS84")
+
+saveRDS(asthma, "data/asthma_for_app.rds")
+```
+
