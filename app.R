@@ -105,10 +105,10 @@ ui = shinydashboard::dashboardPage(
                icon = icon("tree")),
       conditionalPanel(condition = "input.tabs == 'environment'"),
       ######Asmtha
-      menuItem("Asthma",
-               tabName = "asthma",
+      menuItem("Health",
+               tabName = "health",
                icon = icon("plus-square")),
-      conditionalPanel(condition = "input.tabs == 'asthma'"),
+      conditionalPanel(condition = "input.tabs == 'health'"),
       ######Social Vulnerability
       menuItem(
         "Social Vulnerability",
@@ -122,10 +122,6 @@ ui = shinydashboard::dashboardPage(
         icon = icon("book")
       ),
       conditionalPanel(condition = "input.tabs == 'definitions'"),
-      menuItem("Attributions",
-               tabName = "attributions",
-               icon = icon("users")),
-      conditionalPanel(condition = "input.tabs == 'attributions'"),
       hr(style = "margin-top: 5px; margin-bottom: 5px; width:90%"),
       HTML(
         "<button type='button' class='btn btn-default action-button shiny-bound-input' style='display: block;
@@ -249,6 +245,17 @@ ui = shinydashboard::dashboardPage(
               status = "primary",
               footer = "Austin Area Sustainability Indicators",
               "Patrick Bixler is an Assistant Professor at the LBJ School of Public Affairs, core faculty at the RGK Center for Philanthropy and Community Service, and has a joint appointment in the Community and Regional Planning program at the University of Texas. He directs the Austin Area Sustainability Indicators project and co-leads a Planet Texas 2050 Flagship initiative."
+            ),
+            userBox(
+              title = userDescription(
+                title = "Christiane Heggelund",
+                subtitle = "Regional Planning and Services Program Coordinator",
+                image = "images/CAlepuz Headshot.jpg",
+                type = 2
+              ),
+              status = "primary",
+              footer = "Capital Area Council of Governments",
+              "Christiane Heggelund is the Regional Planning and Services Program Coordinator for the Capital Area Council of Governments (CAPCOG). In CAPCOG’s Air Quality Program, Christiane works on air quality monitoring, air quality education and outreach, and air quality analyses. She is a New Orleans, Louisiana, native, who has lived in Texas for 12 years. She holds a Bachelor of Science degree in Geology from Tulane University."
             )
           )
           
@@ -375,14 +382,14 @@ ui = shinydashboard::dashboardPage(
                 ),
                 
               )),
-      ##### Asthma
-      tabItem(tabName = "asthma",
+      ##### health
+      tabItem(tabName = "health",
               column(
                 width = 10,
                 offset = 1,
                 fluidRow(
                   shinydashboard::box(
-                    title = "Asthma!",
+                    title = "Health!",
                     width = 12,
                     solidHeader = FALSE,
                     status = "primary"
@@ -390,7 +397,7 @@ ui = shinydashboard::dashboardPage(
                 ),
                 
               )),
-      ##### Asthma
+      ##### Social Vulnerability
       tabItem(tabName = "social",
               column(
                 width = 10,
@@ -405,6 +412,7 @@ ui = shinydashboard::dashboardPage(
                 ),
                 
               )),
+      ##### Definitions
       tabItem(tabName = "definitions",
               column(
                 width = 10,
@@ -419,56 +427,7 @@ ui = shinydashboard::dashboardPage(
                   )
                 ),
                 
-              )),
-      tabItem(
-        tabName = "attributions",
-        fluidRow(
-          userBox(
-            title = userDescription(
-              title = "Phoebe Romero",
-              subtitle = "Environmental Program Coordinator",
-              image = "images/Phoebe 2.jpg",
-              type = 2
-            ),
-            status = "primary",
-            "Phoebe Romero is passionate about the intersection of climate policy and racial equity. She currently works at the City of Austin Office of Sustainability focusing on air quality and climate action that reduces environmental impact and improves quality of life outcomes for historically impacted communities."
-          ),
-          userBox(
-            title = userDescription(
-              title = "Marc Coudert",
-              subtitle = "Environmental Conservation Program Manager",
-              image = "images/Coudert-sm.jpg",
-              type = 2
-            ),
-            status = "primary",
-            "As an employee of the City of Austin Office of Sustainability, Marc works with city departments to embed climate change resiliency into long term operation and asset management planning. In this role, he also supports community organizers to increase climate resilience in the Eastern Crescent."
-          )
-        ),
-        br(),
-        br(),
-        fluidRow(
-          userBox(
-            title = userDescription(
-              title = "Ethan Tenison",
-              subtitle = "Project Manager for RGK Data Initiaves",
-              image = "images/ethan.jpg",
-              type = 2
-            ),
-            status = "primary",
-            "Ethan manages and evaluates the RGK Center's data initiatives at the University of Texas at Austin. He holds a masters degree in Global Policy Studies from the LBJ School of Public Affairs specializing in Data Science for Policy Analysis."
-          ),
-          userBox(
-            title = userDescription(
-              title = "Patrick Bixler",
-              subtitle = "Assistant Professor",
-              image = "images/thumbnail_Bixler Headshot.jpg",
-              type = 2
-            ),
-            status = "primary",
-            "Patrick Bixler is an Assistant Professor at the LBJ School of Public Affairs, core faculty at the RGK Center for Philanthropy and Community Service, and has a joint appointment in the Community and Regional Planning program at the University of Texas. He directs the Austin Area Sustainability Indicators project and co-leads a Planet Texas 2050 Flagship initiative."
-          )
-        )
-      )
+              ))
     )
   )
 )

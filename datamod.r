@@ -84,6 +84,7 @@ dataServer <- function(id) {
     austin_map <-
       st_transform(austin_map, "+proj=longlat +ellps=WGS84 +datum=WGS84")
     austin_map$value <- as.numeric(austin_map$value)
+    austin_map$value[austin_map$value == 0] <- NA
     
     
     

@@ -19,11 +19,11 @@ barplotServer <- function(id, data) {
           `> 50% Low Income` = if_else(`% low-income` >= 0.5, 1, 0)
         )
       
-      total_av <- mean(bar$value)
+      total_av <- mean(bar$value, na.rm = TRUE)
       poc <- bar |> filter(`> 50% People of Color` == 1)
-      poc_av <- mean(poc$value)
+      poc_av <- mean(poc$value, na.rm = TRUE)
       lowincome <- bar |> filter(`> 50% Low Income` == 1)
-      lowincome_av <- mean(lowincome$value)
+      lowincome_av <- mean(lowincome$value, na.rm = TRUE)
       bar_to_plotly <-
         data.frame(
           y = c(total_av, poc_av, lowincome_av),
