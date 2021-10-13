@@ -36,7 +36,9 @@ set_key(key = key)
 
 #Modules
 source("datamod.r")
+source("datamod_v2.r")
 source("barplot.r")
+source("mapmod.r")
 
 #Data sources not in modules
 definitions <- read_csv("data/definitions.csv") |>
@@ -64,7 +66,7 @@ jsToggleFS <- 'shinyjs.toggleFullScreen = function() {
  }'
 
 
-
+# UI ----
 ui = shinydashboard::dashboardPage(
   skin = "black",
   title = "A2SI",
@@ -78,14 +80,13 @@ ui = shinydashboard::dashboardPage(
     shinyjs::extendShinyjs(text = jsToggleFS, functions = "toggleFullScreen"),
     introjsUI(),
     collapsed = FALSE,
+## Sidebar ----
     sidebarMenu(
       id = "tabs",
-      ######Welcome
       menuItem("Welcome Page",
                tabName = "welcome",
                icon = icon("search")),
       conditionalPanel(condition = "input.tabs == 'welcome'"),
-      ######Air quality
       menuItem("Air Quality",
                tabName = "air",
                icon = icon("wind")),
@@ -99,17 +100,14 @@ ui = shinydashboard::dashboardPage(
           width = '200px'
         )
       ),
-      ######Environment
       menuItem("Environment",
                tabName = "environment",
                icon = icon("tree")),
       conditionalPanel(condition = "input.tabs == 'environment'"),
-      ######Asmtha
       menuItem("Health",
                tabName = "health",
                icon = icon("plus-square")),
       conditionalPanel(condition = "input.tabs == 'health'"),
-      ######Social Vulnerability
       menuItem(
         "Social Vulnerability",
         tabName = "social",
@@ -132,6 +130,7 @@ ui = shinydashboard::dashboardPage(
     )
     
   ),
+## Body ----
   body = shinydashboard::dashboardBody(
     tags$head(
       tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
@@ -146,7 +145,7 @@ ui = shinydashboard::dashboardPage(
       )
     ),
     tabItems(
-      ######Welcome
+      ### Welcome ----
       tabItem(
         tabName = "welcome",
         column(
@@ -261,7 +260,8 @@ ui = shinydashboard::dashboardPage(
           
         )
       ),
-      tabItem(##### Air
+      ### AQ ----
+      tabItem(
         tabName = "air",
         fluidRow(
           column(
@@ -286,63 +286,6 @@ ui = shinydashboard::dashboardPage(
                 background = "green",
                 div(id = "demo_intro",
                     barplotUI("barplot"))
-              ),
-              shinydashboard::box(
-                title = "Find your Census Block Group",
-                width = 12,
-                solidHeader = FALSE,
-                status = "danger",
-                background = "red",
-                div(
-                  id = "my_address_intro",
-                  textInput(
-                    inputId = "my_address",
-                    label = NULL,
-                    width = "100%"
-                  ),
-                  HTML(
-                    paste0(
-                      " <script>
-                function initAutocomplete() {
-
-                 var autocomplete =   new google.maps.places.Autocomplete(document.getElementById('my_address'),{types: ['geocode']});
-                 autocomplete.setFields(['address_components', 'formatted_address',  'geometry', 'icon', 'name']);
-                 autocomplete.addListener('place_changed', function() {
-                 var place = autocomplete.getPlace();
-                 if (!place.geometry) {
-                 return;
-                 }
-
-                 var addressPretty = place.formatted_address;
-                 var address = '';
-                 if (place.address_components) {
-                 address = [
-                 (place.address_components[0] && place.address_components[0].short_name || ''),
-                 (place.address_components[1] && place.address_components[1].short_name || ''),
-                 (place.address_components[2] && place.address_components[2].short_name || ''),
-                 (place.address_components[3] && place.address_components[3].short_name || ''),
-                 (place.address_components[4] && place.address_components[4].short_name || ''),
-                 (place.address_components[5] && place.address_components[5].short_name || ''),
-                 (place.address_components[6] && place.address_components[6].short_name || ''),
-                 (place.address_components[7] && place.address_components[7].short_name || '')
-                 ].join(' ');
-                 }
-                 var address_number =''
-                 address_number = [(place.address_components[0] && place.address_components[0].short_name || '')]
-                 var coords = place.geometry.location;
-                 //console.log(address);
-                 Shiny.onInputChange('jsValue', address);
-                 Shiny.onInputChange('jsValueAddressNumber', address_number);
-                 Shiny.onInputChange('jsValuePretty', addressPretty);
-                 Shiny.onInputChange('jsValueCoords', coords);});}
-                 </script>
-                 <script src='https://maps.googleapis.com/maps/api/js?key=",
-                key,
-                "&libraries=places&callback=initAutocomplete' async defer></script>"
-                    )
-                  )
-                ),
-                
               )
               
             )
@@ -367,29 +310,55 @@ ui = shinydashboard::dashboardPage(
           )
           
         )),
-      ##### Environment
+      ### Environment ----
       tabItem(tabName = "environment",
-              column(
-                width = 10,
-                offset = 1,
-                fluidRow(
-                  shinydashboard::box(
-                    title = "Environment!",
-                    width = 12,
-                    solidHeader = FALSE,
-                    status = "primary"
-                  )
-                ),
-                
-              )),
-      ##### health
+              column(width = 12,
+                     offset = 0,
+                     fluidRow(column(
+                       width = 6,
+                       dataUI_v2(
+                         "environment",
+                         choices = list(
+                           "Wildfire Exposure",
+                           "Heat Exposure",
+                           "Flood Exposure",
+                           "Multihazard Exposure",
+                           "Population Sensitivity",
+                           "Multihazard Exposure and Population Sensitivity",
+                           "Average Impervious Cover",
+                           "Average Tree Cover"
+                         ),
+                         selected = "Average Tree Cover"
+                       )
+                     ),
+                     column(
+                       width = 4
+                     )),
+                     fluidRow(column(
+                       width = 12,
+                       shinydashboard::box(
+                         title = "Environment Map",
+                         width = 6,
+                         solidHeader = FALSE,
+                         status = "primary",
+                         mapUI("env_map", height = "500")
+                       ),
+                       shinydashboard::box(
+                         title = "Environment Plots",
+                         width = 6,
+                         solidHeader = FALSE,
+                         status = "primary"
+                       )
+                       
+                     )),)),
+      ### Health ----
       tabItem(tabName = "health",
               column(
                 width = 10,
                 offset = 1,
                 fluidRow(
                   shinydashboard::box(
-                    title = "Health!",
+                    title = "health!",
                     width = 12,
                     solidHeader = FALSE,
                     status = "primary"
@@ -397,7 +366,7 @@ ui = shinydashboard::dashboardPage(
                 ),
                 
               )),
-      ##### Social Vulnerability
+      ### Social ----
       tabItem(tabName = "social",
               column(
                 width = 10,
@@ -412,7 +381,7 @@ ui = shinydashboard::dashboardPage(
                 ),
                 
               )),
-      ##### Definitions
+      ### Definitions ----
       tabItem(tabName = "definitions",
               column(
                 width = 10,
@@ -446,7 +415,8 @@ ui = shinydashboard::dashboardPage(
 # ------------------------------- #
 # ------------------------------- #
 
-server <- function(input, output, session) {
+# Server ----
+ server <- function(input, output, session) {
   # start introjs when button is pressed with custom options and events
   observeEvent(input$help,
                introjs(
@@ -476,11 +446,14 @@ server <- function(input, output, session) {
                  ),
                ))
   
+  
+  
+  ### AQ ----
+  
   #Variable to visualize
   data <- dataServer("data")
   variable <- data$df
   selected <- data$var
-  
   
   #create the map
   output$bg <- renderLeaflet({
@@ -493,61 +466,6 @@ server <- function(input, output, session) {
         L.control.zoom({ position: 'topright' }).addTo(this)
     }")
   })
-  
-  
-  #Address Look up using googleway
-  my_address <- reactive({
-    if (!is.null(input$jsValueAddressNumber)) {
-      if (length(grep(
-        pattern = input$jsValueAddressNumber,
-        x = input$jsValuePretty
-      )) == 0) {
-        final_address <- c(input$jsValueAddressNumber, input$jsValuePretty)
-      } else{
-        final_address <- input$jsValuePretty
-      }
-      final_address
-    }
-  })
-  
-  #Zoom in on address selected
-  zoom_block <- reactive({
-    if (!is.null(my_address())) {
-      full_blocks <- variable()
-      register_google(key = key, day_limit = 100000)
-      lonlat <-
-        geocode(location = my_address(), output = "latlona")
-      spatial_point <-
-        st_as_sf(
-          lonlat,
-          coords = c("lon", "lat"),
-          crs = 4326,
-          remove = FALSE
-        )
-      lonlat <- select(lonlat, lon, lat)
-      censusblock_tovisualize <-
-        st_join(spatial_point, full_blocks)
-      censusblock_tovisualize <-
-        censusblock_tovisualize[!is.na(censusblock_tovisualize$address),]
-      censusblock_tovisualize <-
-        censusblock_tovisualize[['id']]
-      tovisualize <-
-        full_blocks |> filter(id == censusblock_tovisualize) |> bind_cols(lonlat)
-      tovisualize
-    }
-    
-  })
-  
-  #Code to clear out highlighted block if none is selected
-  clearaddress <- reactive({
-    if (input$my_address == "" | is.na(input$my_address)) {
-      clear <- "clear"
-    } else {
-      clear <- "don't clear"
-    }
-    
-  })
-  
   
   #Color Palette for Map
   pal <- reactive({
@@ -568,9 +486,6 @@ server <- function(input, output, session) {
     }
   })
   
-  #Definition Table
-  output$definitions <- renderDataTable(DT::datatable(definitions,
-                                                      options = list(pageLength = 10)))
   
   #Legend Title
   legend_title <- reactive({
@@ -627,60 +542,7 @@ server <- function(input, output, session) {
         title = legend_title(),
         na.label = ""
       )
-    
-    if (!is.null(my_address())) {
-      proxy <- proxy |>
-        addPolygons(
-          layerId = "address_lookup",
-          data = zoom_block(),
-          color = "red",
-          weight = 5,
-          smoothFactor = 0.5,
-          opacity = 1.0,
-          fillOpacity = 0.1,
-          fillColor = "black",
-          highlightOptions = highlightOptions(
-            color = "red",
-            weight = 3,
-            bringToFront = TRUE
-          ),
-          label = ~ paste0(
-            zoom_block()$var,
-            ": ",
-            format(zoom_block()$value, digits = 1)
-          ),
-          
-          popup =  ~ paste0(
-            "<h5/><b>",
-            zoom_block()$var,
-            ": ",
-            format(zoom_block()$value, digits = 1),
-            "<h6/>",
-            "Census Block Group: ",
-            id,
-            "<h6/>",
-            "Total population: ",
-            format(zoom_block()$`Population`, big.mark = ","),
-            "<h6/>",
-            "People of Color (%): ",
-            format(zoom_block()$`% people of color`, digits = 1),
-            "<h6/>",
-            "Low Income (%): ",
-            format(zoom_block()$`% low-income`, digits = 1)
-          )
-        ) |>
-        setView(lng = zoom_block()$lon,
-                lat = zoom_block()$lat,
-                zoom = 13)
-    }
-    
-    if (clearaddress() == "clear") {
-      proxy <- proxy |>
-        removeShape(layerId = "address_lookup")
-    } else {
-      proxy <- proxy
-    }
-    
+  
     proxy
     
     
@@ -704,20 +566,25 @@ server <- function(input, output, session) {
   # showModal(query_modal)
   
   
-  #Rendering Text for address look up
-  output$full_address <- renderText({
-    if (!is.null(my_address())) {
-      register_google(key = key, day_limit = 100000)
-      lonlat <- geocode(location = my_address(), output = "latlona")
-      spatial_point <-
-        st_as_sf(lonlat, coords = c("lon", "lat"), crs = 4326)
-      lonlat <- paste0(lonlat[1], ", ", lonlat[2])
-      censusblock_tovisualize <-
-        st_join(spatial_point, variable(), left = FALSE)
-      print(paste0(selected(), ": ", censusblock_tovisualize[['value']]))
-      print(paste0(selected(), "average: ", mean(censusblock_tovisualize[['value']])))
-    }
-  })
+  
+  
+  ### Environment ----
+  
+  #Environment Variables to visualize
+  env <- dataServer_v2("environment")
+  variable_env <- env$df
+  selected_env <- env$var
+  
+  #Map Server
+  mapServer("env_map", data = variable_env, selected = selected_env)
+  
+  ### Health ----
+  ### Social ----
+  ### Definitions ----
+  
+  #Definition Table
+  output$definitions <- renderDataTable(DT::datatable(definitions,
+                                                      options = list(pageLength = 10)))
   
 }
 
