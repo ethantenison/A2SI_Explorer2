@@ -18,7 +18,7 @@ dataUI_v2 <- function(id, choices, selected) {
   )
 }
 
-dataServer_v2 <- function(id) {
+dataServer_v2 <- function(id, data) {
   moduleServer(id, function(input, output, session) {
     
     #Variable Info Table
@@ -26,7 +26,7 @@ dataServer_v2 <- function(id) {
     
     varinfo_reactive <- reactive({
       def <- definitions |> filter(Variable == input$var) |> 
-        select(-c(Variable, "Additional Information", Units))
+        dplyr::select(-c(Variable, "Additional Information", Units))
       def <- t(def)
       colnames(def) <- " "
       def
@@ -48,7 +48,7 @@ dataServer_v2 <- function(id) {
     
     
     #Variable and Data Reactivity 
-    austin_map <- readRDS("./data/austin_composite.rds")
+    austin_map <- data
     austin_map <- as.data.frame(austin_map)
     austin_map <- st_as_sf(austin_map)
     austin_map <-

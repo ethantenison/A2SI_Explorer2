@@ -40,9 +40,13 @@ source("datamod_v2.r")
 source("barplot.r")
 source("mapmod.r")
 
+austin_map <- readRDS("./data/austin_composite.rds")
+
+health <- readRDS("./data/asthma_for_app.rds")
+
 #Data sources not in modules
 definitions <- read_csv("data/definitions.csv") |>
-  select(-c("Additional Information")) |>
+  dplyr::select(-c("Additional Information")) |>
   mutate(Units = replace_na(Units, ""))
 
 
@@ -80,7 +84,7 @@ ui = shinydashboard::dashboardPage(
     shinyjs::extendShinyjs(text = jsToggleFS, functions = "toggleFullScreen"),
     introjsUI(),
     collapsed = FALSE,
-## Sidebar ----
+    ## Sidebar ----
     sidebarMenu(
       id = "tabs",
       menuItem("Welcome Page",
@@ -91,15 +95,7 @@ ui = shinydashboard::dashboardPage(
                tabName = "air",
                icon = icon("wind")),
       conditionalPanel(
-        condition = "input.tabs == 'air'",
-        actionButton(
-          "help",
-          "Tutorial",
-          icon = icon("book-open",
-                      class = "fa-pull-left"),
-          width = '200px'
-        )
-      ),
+        condition = "input.tabs == 'air'"),
       menuItem("Environment",
                tabName = "environment",
                icon = icon("tree")),
@@ -114,11 +110,9 @@ ui = shinydashboard::dashboardPage(
         icon = icon("users")
       ),
       conditionalPanel(condition = "input.tabs == 'social'"),
-      menuItem(
-        "Variable Definitions",
-        tabName = "definitions",
-        icon = icon("book")
-      ),
+      menuItem("Definitions",
+               tabName = "definitions",
+               icon = icon("book")),
       conditionalPanel(condition = "input.tabs == 'definitions'"),
       hr(style = "margin-top: 5px; margin-bottom: 5px; width:90%"),
       HTML(
@@ -130,7 +124,7 @@ ui = shinydashboard::dashboardPage(
     )
     
   ),
-## Body ----
+  ## Body ----
   body = shinydashboard::dashboardBody(
     tags$head(
       tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
@@ -174,9 +168,9 @@ ui = shinydashboard::dashboardPage(
               width = 6,
               solidHeader = FALSE,
               status = "primary",
-              div(style="text-align: center;", 
-              img(src = "images/AASI_logo_v1b-01.png",
-                  width = "75%"))
+              div(style = "text-align: center;",
+                  img(src = "images/AASI_logo_v1b-01.png",
+                      width = "75%"))
             ),
             shinydashboard::box(
               title = "About A2SI",
@@ -261,125 +255,158 @@ ui = shinydashboard::dashboardPage(
         )
       ),
       ### AQ ----
-      tabItem(
-        tabName = "air",
-        fluidRow(
-          column(
-            width = 3,
-            style = 'padding:25px;padding-top:25px;padding-left:30px;',
-            offset = 0,
-            fluidRow(
-              shinydashboard::box(
-                title = "Select a Variable",
-                width = 12,
-                solidHeader = FALSE,
-                status = "primary",
-                background = "light-blue",
-                div(id = "select_intro",
-                    dataUI("data"))
-              ),
-              shinydashboard::box(
-                title = textOutput("demographic"),
-                width = 12,
-                solidHeader = FALSE,
-                status = "success",
-                background = "green",
-                div(id = "demo_intro",
-                    barplotUI("barplot"))
-              )
-              
-            )
-          ),
-          column(
-            width = 9,
-            style = 'padding-left:20px; padding-top:25px; padding-right:42px;',
-            offset = 0,
-            fluidRow(
-              shinydashboard::box(
-                title = "Austin Area by Census Block Group",
-                width = 12,
-                solidHeader = FALSE,
-                status = "primary",
-                background = "light-blue",
-                div(id = 'map_intro',
-                    leafletOutput("bg", height = 750))
-                
-              )
-            )
-            
-          )
-          
-        )),
-      ### Environment ----
-      tabItem(tabName = "environment",
-              column(width = 12,
-                     offset = 0,
-                     fluidRow(column(
-                       width = 6,
-                       dataUI_v2(
-                         "environment",
-                         choices = list(
-                           "Wildfire Exposure",
-                           "Heat Exposure",
-                           "Flood Exposure",
-                           "Multihazard Exposure",
-                           "Population Sensitivity",
-                           "Multihazard Exposure and Population Sensitivity",
-                           "Average Impervious Cover",
-                           "Average Tree Cover"
-                         ),
-                         selected = "Average Tree Cover"
-                       )
-                     ),
-                     column(
-                       width = 4
-                     )),
-                     fluidRow(column(
-                       width = 12,
-                       shinydashboard::box(
-                         title = "Environment Map",
-                         width = 6,
-                         solidHeader = FALSE,
-                         status = "primary",
-                         mapUI("env_map", height = "500")
-                       ),
-                       shinydashboard::box(
-                         title = "Environment Plots",
-                         width = 6,
-                         solidHeader = FALSE,
-                         status = "primary"
-                       )
-                       
-                     )),)),
-      ### Health ----
-      tabItem(tabName = "health",
+      tabItem(tabName = "air",
               column(
-                width = 10,
-                offset = 1,
-                fluidRow(
+                width = 12,
+                offset = 0,
+                fluidRow(column(
+                  width = 6,
+                  dataUI_v2(
+                    "air",
+                    choices = list(
+                      "Ozone - CAPCOG",
+                      "PM2.5",
+                      "PM2.5 - CAPCOG",
+                      "Percentile for PM2.5 level in air"
+                    ),
+                    selected = "PM2.5"
+                  )
+                ),
+                column(width = 4)),
+                fluidRow(column(
+                  width = 12,
                   shinydashboard::box(
-                    title = "health!",
-                    width = 12,
+                    title = "Air Quality Map",
+                    width = 8,
+                    solidHeader = FALSE,
+                    status = "primary",
+                    mapUI("air_map", height = "700")
+                  ),
+                  shinydashboard::box(
+                    title = "Air Quality Plots",
+                    width = 4,
                     solidHeader = FALSE,
                     status = "primary"
                   )
+                  
+                ))
+              )),
+      ### Environment ----
+      tabItem(tabName = "environment",
+              column(
+                width = 12,
+                offset = 0,
+                fluidRow(column(
+                  width = 6,
+                  dataUI_v2(
+                    "environment",
+                    choices = list(
+                      "Wildfire Exposure",
+                      "Heat Exposure",
+                      "Flood Exposure",
+                      "Multihazard Exposure",
+                      "Multihazard Exposure and Population Sensitivity",
+                      "Average Impervious Cover",
+                      "Average Tree Cover"
+                    ),
+                    selected = "Average Tree Cover"
+                  )
                 ),
-                
+                column(width = 4)),
+                fluidRow(column(
+                  width = 12,
+                  shinydashboard::box(
+                    title = "Environment Map",
+                    width = 8,
+                    solidHeader = FALSE,
+                    status = "primary",
+                    mapUI("env_map", height = "700")
+                  ),
+                  shinydashboard::box(
+                    title = "Environment Plots",
+                    width = 4,
+                    solidHeader = FALSE,
+                    status = "primary"
+                  )
+                  
+                ))
+              )),
+      ### Health ----
+      tabItem(tabName = "health",
+              column(
+                width = 12,
+                offset = 0,
+                fluidRow(column(
+                  width = 6,
+                  dataUI_v2(
+                    "health",
+                    choices = list(
+                      "child_prev",
+                      "adult_prev",
+                      "total_prev"
+                    ),
+                    selected = "total_prev"
+                  )
+                ),
+                column(width = 4)),
+                fluidRow(column(
+                  width = 12,
+                  shinydashboard::box(
+                    title = "Health Map",
+                    width = 8,
+                    solidHeader = FALSE,
+                    status = "primary",
+                    mapUI("hel_map", height = "700")
+                  ),
+                  shinydashboard::box(
+                    title = "Health Plots",
+                    width = 4,
+                    solidHeader = FALSE,
+                    status = "primary"
+                  )
+                  
+                ))
               )),
       ### Social ----
       tabItem(tabName = "social",
               column(
-                width = 10,
-                offset = 1,
-                fluidRow(
+                width = 12,
+                offset = 0,
+                fluidRow(column(
+                  width = 6,
+                  dataUI_v2(
+                    "social",
+                    choices = list(
+                      "Log Population Density",
+                      "% people of color",
+                      "% low-income",
+                      "% under age 5",
+                      "% over age 64",
+                      "Average Vehicles per person",
+                      "Percent of households without a car",
+                      "Population Sensitivity"
+                    ),
+                    selected = "Log Population Density"
+                  )
+                ),
+                column(width = 4)),
+                fluidRow(column(
+                  width = 12,
                   shinydashboard::box(
-                    title = "Social Vulnerability!",
-                    width = 12,
+                    title = "Social Vulnerability Map",
+                    width = 8,
+                    solidHeader = FALSE,
+                    status = "primary",
+                    mapUI("soc_map", height = "700")
+                  ),
+                  shinydashboard::box(
+                    title = "Social Vulnerability Plots",
+                    width = 4,
                     solidHeader = FALSE,
                     status = "primary"
                   )
-                ),
-                
+                  
+                )),
               )),
       ### Definitions ----
       tabItem(tabName = "definitions",
@@ -416,170 +443,74 @@ ui = shinydashboard::dashboardPage(
 # ------------------------------- #
 
 # Server ----
- server <- function(input, output, session) {
+server <- function(input, output, session) {
   # start introjs when button is pressed with custom options and events
-  observeEvent(input$help,
-               introjs(
-                 session,
-                 options = list(
-                   steps = data.frame(
-                     element = c(
-                       "#select_intro",
-                       "#demo_intro",
-                       "#my_address_intro",
-                       "#map_intro"
-                     ),
-                     intro = c(
-                       includeMarkdown("tooltips/select_intro.md"),
-                       includeMarkdown("tooltips/demographic_intro.md"),
-                       includeMarkdown("tooltips/my_address_intro.md"),
-                       includeMarkdown("tooltips/map_intro.md")
-                     ),
-                     position = c("auto",
-                                  "auto",
-                                  "auto",
-                                  "auto")
-                   ),
-                   "nextLabel" = "Next",
-                   "prevLabel" = "Previous",
-                   "skipLabel" = "Exit"
-                 ),
-               ))
-  
+  # observeEvent(input$help,
+  #              introjs(
+  #                session,
+  #                options = list(
+  #                  steps = data.frame(
+  #                    element = c(
+  #                      "#select_intro",
+  #                      "#demo_intro",
+  #                      "#my_address_intro",
+  #                      "#map_intro"
+  #                    ),
+  #                    intro = c(
+  #                      includeMarkdown("tooltips/select_intro.md"),
+  #                      includeMarkdown("tooltips/demographic_intro.md"),
+  #                      includeMarkdown("tooltips/my_address_intro.md"),
+  #                      includeMarkdown("tooltips/map_intro.md")
+  #                    ),
+  #                    position = c("auto",
+  #                                 "auto",
+  #                                 "auto",
+  #                                 "auto")
+  #                  ),
+  #                  "nextLabel" = "Next",
+  #                  "prevLabel" = "Previous",
+  #                  "skipLabel" = "Exit"
+  #                ),
+  #              ))
+  # 
   
   
   ### AQ ----
   
   #Variable to visualize
-  data <- dataServer("data")
-  variable <- data$df
-  selected <- data$var
-  
-  #create the map
-  output$bg <- renderLeaflet({
-    leaflet(variable(), options = leafletOptions(zoomControl = FALSE)) |>
-      setView(lng = -97.5330332291251,
-              lat = 30.282125904548206,
-              zoom = 9)  |>
-      addProviderTiles(providers$CartoDB.Positron) |>
-      htmlwidgets::onRender("function(el, x) {
-        L.control.zoom({ position: 'topright' }).addTo(this)
-    }")
-  })
-  
-  #Color Palette for Map
-  pal <- reactive({
-    if (selected() == "Flood Exposure") {
-      colorNumeric(
-        palette = "RdBu",
-        n = 5,
-        reverse = FALSE,
-        domain = variable()$value
-      )
-    } else {
-      colorNumeric(
-        palette = "RdBu",
-        n = 5,
-        reverse = TRUE,
-        domain = variable()$value
-      )
-    }
-  })
+  air <- dataServer_v2("air",data = austin_map)
+  variable_air <- air$df
+  selected_air <- air$var
   
   
-  #Legend Title
-  legend_title <- reactive({
-    units <- definitions |> dplyr::filter(Variable == selected())
-    units <- units$Units
-    
-    paste0(selected(), "</br>", "<h5>", units, "</h5>")
-  })
-  
-  #Map attributes to display
-  observe({
-    proxy <- leafletProxy("bg", data = variable()) |>
-      clearShapes() |>
-      clearControls() |>
-      addPolygons(
-        color = "#444444",
-        weight = 1,
-        smoothFactor = 0.5,
-        opacity = 1.0,
-        fillOpacity = 0.7,
-        fillColor = ~ pal()(variable()$value),
-        highlightOptions = highlightOptions(
-          color = "white",
-          weight = 2,
-          bringToFront = TRUE
-        ),
-        label = ~ paste0(variable()$var,
-                         ": ",
-                         format(variable()$value, digits = 1)),
-        
-        popup =  ~ paste0(
-          "<h5/><b>",
-          variable()$var,
-          ": ",
-          format(variable()$value, digits = 1),
-          "<h6/>",
-          "Census Block Group: ",
-          id,
-          "<h6/>",
-          "Total population: ",
-          format(variable()$`Population`, big.mark = ","),
-          "<h6/>",
-          "People of Color (%): ",
-          format(variable()$`% people of color`, digits = 1),
-          "<h6/>",
-          "Low Income (%): ",
-          format(variable()$`% low-income`, digits = 1)
-        )
-      ) |>
-      addLegend(
-        "bottomright",
-        pal = pal(),
-        values = ~ variable()$value,
-        title = legend_title(),
-        na.label = ""
-      )
-  
-    proxy
-    
-    
-    
-  })
-  
-  #Plotly Barplot
-  barplotServer("barplot", data = variable)
-  
-  #Bar Plot header
-  output$demographic <-
-    renderText({
-      paste0(selected(), " By Major Demographic Groups")
-    })
-  
-  #pop up on launch
-  # query_modal <- modalDialog(title = "Important message",
-  #                            includeMarkdown("tooltips/intro.md"),
-  #                            easyClose = F)
-  #
-  # showModal(query_modal)
-  
-  
+  mapServer("air_map", data = variable_air, selected = selected_air)
   
   
   ### Environment ----
   
   #Environment Variables to visualize
-  env <- dataServer_v2("environment")
+  env <- dataServer_v2("environment", data = austin_map)
   variable_env <- env$df
   selected_env <- env$var
   
-  #Map Server
+  
   mapServer("env_map", data = variable_env, selected = selected_env)
   
   ### Health ----
+  hel <- dataServer_v2("health", data = health)
+  variable_hel <- hel$df
+  selected_hel <- hel$var
+  
+  
+  mapServer("hel_map", data = variable_hel, selected = selected_hel)
   ### Social ----
+  soc <- dataServer_v2("social", data = austin_map)
+  variable_soc <- soc$df
+  selected_soc <- soc$var
+  
+  
+  mapServer("soc_map", data = variable_soc, selected = selected_soc)
+  
   ### Definitions ----
   
   #Definition Table
