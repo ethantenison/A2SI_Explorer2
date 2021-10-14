@@ -261,7 +261,7 @@ ui = shinydashboard::dashboardPage(
                 offset = 0,
                 fluidRow(column(
                   width = 6,
-                  dataUI_v2(
+                  dataUI_v2( #Selector UI
                     "air",
                     choices = list(
                       "Ozone - CAPCOG",
@@ -280,7 +280,7 @@ ui = shinydashboard::dashboardPage(
                     width = 8,
                     solidHeader = FALSE,
                     status = "primary",
-                    mapUI("air_map", height = "700")
+                    mapUI("air_map", height = "700") #Map UI
                   ),
                   shinydashboard::box(
                     title = "Air Quality Plots",
@@ -326,7 +326,9 @@ ui = shinydashboard::dashboardPage(
                     title = "Environment Plots",
                     width = 4,
                     solidHeader = FALSE,
-                    status = "primary"
+                    status = "primary",
+                    barplotUI("env_bar"),
+                    boxplotUI("env_bar2")
                   )
                   
                 ))
@@ -341,11 +343,11 @@ ui = shinydashboard::dashboardPage(
                   dataUI_v2(
                     "health",
                     choices = list(
-                      "child_prev",
-                      "adult_prev",
-                      "total_prev"
+                      "Asthma Prevalence",
+                      "Asthma Prevalence in Children",
+                      "Asthma Prevalence in Adults"
                     ),
-                    selected = "total_prev"
+                    selected = "Asthma Prevalence"
                   )
                 ),
                 column(width = 4)),
@@ -362,7 +364,8 @@ ui = shinydashboard::dashboardPage(
                     title = "Health Plots",
                     width = 4,
                     solidHeader = FALSE,
-                    status = "primary"
+                    status = "primary",
+                    barplotUI("hel_bar")
                   )
                   
                 ))
@@ -403,7 +406,8 @@ ui = shinydashboard::dashboardPage(
                     title = "Social Vulnerability Plots",
                     width = 4,
                     solidHeader = FALSE,
-                    status = "primary"
+                    status = "primary",
+                    barplotUI("soc_bar")
                   )
                   
                 )),
@@ -485,7 +489,6 @@ server <- function(input, output, session) {
   
   mapServer("air_map", data = variable_air, selected = selected_air)
   
-  
   ### Environment ----
   
   #Environment Variables to visualize
@@ -493,8 +496,14 @@ server <- function(input, output, session) {
   variable_env <- env$df
   selected_env <- env$var
   
+  env2 <- dataServer_v2("environment", data = austin_map)
+  variable_env2 <- env2$df
+  selected_env2 <- env2$var
+  
   
   mapServer("env_map", data = variable_env, selected = selected_env)
+  barplotServer("env_bar", data = variable_env2)
+  barplotServer("env_bar2", data = variable_env2)
   
   ### Health ----
   hel <- dataServer_v2("health", data = health)
@@ -503,6 +512,7 @@ server <- function(input, output, session) {
   
   
   mapServer("hel_map", data = variable_hel, selected = selected_hel)
+  barplotServer("hel_bar", data = variable_env)
   ### Social ----
   soc <- dataServer_v2("social", data = austin_map)
   variable_soc <- soc$df
@@ -510,6 +520,7 @@ server <- function(input, output, session) {
   
   
   mapServer("soc_map", data = variable_soc, selected = selected_soc)
+  barplotServer("soc_bar", data = variable_env)
   
   ### Definitions ----
   

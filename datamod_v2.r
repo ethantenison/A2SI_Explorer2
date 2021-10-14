@@ -1,25 +1,25 @@
 #Data Set Module
 
 dataUI_v2 <- function(id, choices, selected) {
+  #' choices = drop down options
+  #' selected = choice that is preselected
   tagList(
     pickerInput(
       NS(id, "var"),
-      label = "Select:  ",
+      label = "Select Variable:  ",
       width = 'fit',
       inline = "TRUE",
       options = list(`actions-box` = TRUE,
                      size = 10),
       choices = choices,
       selected = selected
-    ),
-    dataTableOutput(
-      NS(id,"varinfo")
     )
   )
 }
 
 dataServer_v2 <- function(id, data) {
   moduleServer(id, function(input, output, session) {
+    #' data = data to be filtered
     
     #Variable Info Table
     definitions <- read_csv("data/definitions.csv")
@@ -32,20 +32,6 @@ dataServer_v2 <- function(id, data) {
       def
     })
     
-    # output$varinfo <- DT::renderDataTable({
-    #   DT::datatable(
-    #     varinfo_reactive(),
-    #     escape = FALSE,
-    #     options = list(
-    #       lengthChange = FALSE,
-    #       info = FALSE,
-    #       paging = FALSE,
-    #       ordering = FALSE
-    #     )
-    #   )
-    # })
-    
-    
     
     #Variable and Data Reactivity 
     austin_map <- data
@@ -57,7 +43,7 @@ dataServer_v2 <- function(id, data) {
     austin_map$value[austin_map$value == 0] <- NA
     
     
-    list(
+    list(#It's important to wrap outputs as reactive 
       var = reactive(input$var),
       df = reactive(austin_map |> dplyr::filter(var == input$var))
     )

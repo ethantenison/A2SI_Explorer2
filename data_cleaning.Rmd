@@ -13,7 +13,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-
 ### Reading Raw Data
 
 ```{r libraries_raw, message=FALSE, warning=FALSE}
@@ -25,6 +24,7 @@ library(readr)
 library(tidyverse)
 library(raster)
 library(units)
+library(tidycensus)
 
 df_raw <- read_excel("data/2021_01_06_Climate Vulnerability Composite Score_MASTER FILE.xlsx", 
     sheet = "Composite (exp+vul) score", 
@@ -91,8 +91,6 @@ capcogcensus <- read_csv("data/ACSDT5Y2019.B01003_data_with_overlays_2021-08-02T
     dplyr::select(-c(margin_of_error_total))
 ```
 
-
-
 ```{r carownership}
 
 car <- car_ownership_raw
@@ -122,7 +120,6 @@ car_household <- car_household |> dplyr::select(id,`Percent of households withou
 
 ```
 
-
 # Capcog data
 
 ```{r capcog}
@@ -150,9 +147,6 @@ cap_pm2.5 <- capcog_pm2.5_raw |>
 
 
 ```
-
-
-
 
 ```{r}
 
@@ -320,28 +314,79 @@ df$value[df$var == "PM10" & df$value == 0] <- 22
 # df$value[df$var == "SO2" & df$value == 0] <- 0.9
 # df$value[df$var == "O3" & df$value == 0] <- 43
 
-df <- bind_rows(df, cap_ozone, cap_pm2.5)
+df2 <- bind_rows(df, cap_ozone, cap_pm2.5) |>
+  dplyr::select(id, var, value, "% low-income", geometry)
 
-saveRDS(df, "data/austin_composite.rds")
+
+
 
 ```
 
+```{r tidycensus}
+
+#acs variables 
+vars <- c("B02001_001", "B02001_002", "B02001_003", "B02001_005",
+          "B03002_012")
+
+counties <- c("Travis", "Bastrop","Blanco", "Burnet", "Caldwell",
+              "Fayette", "Hays", "Lee", "Llano", "Williamson")
+
+#enter your key census_api_key("Your key here")
+acs <-get_acs(state="TX", county = counties, geography="block group",year = 2017,
+              variables=vars, geometry= F) 
+
+acs2 <- acs |>
+  separate(NAME, c("bg", "tract", "county"), sep = ",") |>
+  pivot_wider(names_from = variable, values_from = c(estimate, moe)) |>
+  rename(
+    "population" = estimate_B02001_001,
+    "white_alone" = estimate_B02001_002,
+    "black_alone" = estimate_B02001_003,
+    "asian_alone" = estimate_B02001_005,
+    "hispanic" = estimate_B03002_012
+  ) |>
+  mutate(
+    "% White-Alone" = white_alone / population,
+    "% Black-Alone" = black_alone / population,
+    "% Asian-Alone" = asian_alone / population,
+    "% Hispanic" = hispanic / population
+  ) |>
+  dplyr::select(
+    GEOID,
+    population,
+    "% White-Alone",
+    "% Black-Alone",
+    "% Asian-Alone",
+    "% Hispanic", 
+    "county"
+  ) 
+
+df3 <- df2 |>
+  left_join(acs2, by = c("id" = "GEOID")) 
+  
+
+saveRDS(df3, "data/austin_composite.rds")
+
+```
 
 ```{r asthma}
-library(tidycensus)
+
 
 asthma <- read_rds("data/asthma_prevalence_2017_capcog.rds") |> 
     mutate(child_prev = child_prev * 10000,
            adult_prev = adult_prev * 10000,
            total_prev = total_prev * 10000) |> 
-    dplyr::select(GEOID, child_prev, adult_prev, total_prev, geometry) |> 
-    pivot_longer(cols = child_prev:total_prev,  
+    dplyr::select(GEOID, child_prev, adult_prev, total_prev, geometry) |>
+    rename("Asthma Prevalence" = total_prev,
+           "Asthma Prevalence in Children" = child_prev,
+           "Asthma Prevalence in Adults" = adult_prev) |>
+    pivot_longer(cols = `Asthma Prevalence in Children`:`Asthma Prevalence`,  
                  names_to = "var",
                  values_to = "value") 
 
 #acs variables 
 vars <- c("B02001_001", "B02001_002", "B02001_003", "B02001_005",
-          "B03001_003", "B06012_002", "B06012_003")
+          "B03002_012", "B06012_002", "B06012_003")
 
 counties <- c("Travis", "Bastrop","Blanco", "Burnet", "Caldwell",
               "Fayette", "Hays", "Lee", "Llano", "Williamson")
@@ -358,7 +403,7 @@ acs2 <- acs |>
     "white_alone" = estimate_B02001_002,
     "black_alone" = estimate_B02001_003,
     "asian_alone" = estimate_B02001_005,
-    "hispanic" = estimate_B03001_003,
+    "hispanic" = estimate_B03002_012,
     "below_poverty" = estimate_B06012_002,
     "between_poverty" = estimate_B06012_003
   ) |>
@@ -376,7 +421,8 @@ acs2 <- acs |>
     "% Black-Alone",
     "% Asian-Alone",
     "% Hispanic",
-    "% low-income"
+    "% low-income",
+    "county"
   ) 
 
 
@@ -389,5 +435,3 @@ asthma <- st_as_sf(asthma) |>
 
 saveRDS(asthma, "data/asthma_for_app.rds")
 ```
-
-

@@ -1,6 +1,7 @@
 # Map Module 
 
 mapUI <- function(id, height) {
+  #' height = height of map output
   tagList(
     leafletOutput(NS(id, "map"), height = height)
   )
@@ -10,8 +11,11 @@ mapUI <- function(id, height) {
 
 mapServer <- function(id, data, selected) {
   moduleServer(id, function(input, output, session) {
+    #' data = data from data module
+    #' selected = choice that is preselected from data module
     
     #create the map
+    #This is where the passed data becomes reactive!
     output$map <- renderLeaflet({
       leaflet(data(), options = leafletOptions(zoomControl = FALSE)) |>
         setView(lng = -97.5330332291251,
@@ -64,7 +68,7 @@ mapServer <- function(id, data, selected) {
           color = "#444444",
           weight = 1,
           smoothFactor = 0.5,
-          opacity = 1.0,
+          opacity = 0,
           fillOpacity = 0.7,
           fillColor = ~ pal()(data()$value),
           highlightOptions = highlightOptions(
@@ -86,7 +90,7 @@ mapServer <- function(id, data, selected) {
             id,
             "<h6/>",
             "Total population: ",
-            format(data()$`Population`, big.mark = ","),
+            format(data()$`population`, big.mark = ","),
             "<h6/>",
             "People of Color (%): ",
             format(data()$`% people of color`, digits = 1),
