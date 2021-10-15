@@ -35,7 +35,6 @@ source("data/key.r")
 set_key(key = key)
 
 #Modules
-source("datamod.r")
 source("datamod_v2.r")
 source("barplot.r")
 source("mapmod.r")
@@ -114,6 +113,10 @@ ui = shinydashboard::dashboardPage(
                tabName = "definitions",
                icon = icon("book")),
       conditionalPanel(condition = "input.tabs == 'definitions'"),
+      menuItem("Attributions",
+               tabName = "attributions",
+               icon = icon("info-circle")),
+      conditionalPanel(condition = "input.tabs == 'attributions'"),
       hr(style = "margin-top: 5px; margin-bottom: 5px; width:90%"),
       HTML(
         "<button type='button' class='btn btn-default action-button shiny-bound-input' style='display: block;
@@ -143,20 +146,22 @@ ui = shinydashboard::dashboardPage(
       tabItem(
         tabName = "welcome",
         column(
-          width = 10,
-          offset = 1,
+          width = 12,
           fluidRow(
             shinydashboard::box(
               title = NULL,
               width = 12,
-              solidHeader = FALSE,
+              solidHeader = TRUE,
+              background = "light-blue",
               status = "primary",
               h1(
-                "Welcome to the Austin area air pollution and population sensitivity dashboard!"
+                strong("Welcome to the A2SI Dashboard!"),
+                style = "font-size:75px;"
               ),
+              hr(),
               h3(
                 "This project is brought to you by the Austin Area Sustainability Indicators
-                     project at the University of Texas
+                     project (A2SI) at the University of Texas
                      at Austin in collaborations with the City of Austin Office of Sustainability
                      and the Capital Area Council of Governments (CAPCOG)."
               )
@@ -165,18 +170,13 @@ ui = shinydashboard::dashboardPage(
           fluidRow(
             shinydashboard::box(
               title = NULL,
-              width = 6,
+              width = 4,
               solidHeader = FALSE,
               status = "primary",
               div(style = "text-align: center;",
                   img(src = "images/AASI_logo_v1b-01.png",
-                      width = "75%"))
-            ),
-            shinydashboard::box(
-              title = "About A2SI",
-              width = 6,
-              solidHeader = FALSE,
-              status = "primary",
+                      width = "75%")),
+              br(),
               "The",
               a("Austin Area Sustainability Indicators", href = "http://www.austinindicators.org/"),
               "(A2SI), an initative led by Professor Patrick Bixler at the LBJ
@@ -188,8 +188,230 @@ ui = shinydashboard::dashboardPage(
                 easier to communicate. These indicators span population demographics, civic life, education,
                 health, mobility, economy and environment."
             ),
+            shinydashboard::box(
+              width = 4,
+              solidHeader = FALSE,
+              status = "primary",
+              div(style = "text-align: center;",
+                  img(src = "images/aos.png",
+                      width = "100%")),
+              br(),
+              "The City of Austin's Office of Sustainability provides leadership,
+              influences positive action through engagement, and creates measurable
+              benefits for Austin. We seek ways to ensure a thriving, equitable,
+              and ecologically resilient community. Take a look at some of our achievements."
+              
+            ),
+            shinydashboard::box(
+              width = 4,
+              solidHeader = FALSE,
+              status = "primary",
+              div(style = "text-align: center;",
+                  img(src = "images/capcog.png",
+                      width = "50%")),
+              br(),
+              "The Capital Area Council of Governments (CAPCOG) serves as an advocate,
+              planner and coordinator on important regional issues in the 10-county
+              encompassing Austin-Round Rock-Georgetown Metropolitan Statistical Area.",
+              br(),
+              br(),
+              "With more than 90 member governments and organizations, including
+              cities, counties, school and appraisal districts, utilities,
+              chambers of commerce and more, CAPCOG has helped the region recognize
+              opportunities for cooperation and eliminate unnecessary duplication
+              in emergency communications, elderly assistance, law enforcement
+              training, criminal justice planning, solid waste reduction, homeland security planning,
+              infrastructure development, transportation planning and economic development."
+              
+            )
             
-          ),
+          )
+          
+        )
+      ),
+      ### AQ ----
+      tabItem(tabName = "air",
+              column(
+                width = 12,
+                offset = 0,
+                fluidRow(column(
+                  style='padding-left:30px;padding-bottom: 30px;',
+                  width = 6,
+                  h1(strong("Air Quality"), style = "font-size:50px;")
+                ),
+                column(width = 4)),
+                fluidRow(column(
+                  width = 12,
+                  shinydashboard::box(
+                    width = 8,
+                    solidHeader = FALSE,
+                    status = "primary",
+                    dataUI( #Selector UI
+                      "air",
+                      choices = list(
+                        "Ozone - CAPCOG",
+                        "PM2.5",
+                        "PM2.5 - CAPCOG",
+                        "Percentile for PM2.5 level in air"
+                      ),
+                      selected = "PM2.5"
+                    ),
+                    mapUI("air_map", height = "700") #Map UI
+                  ),
+                  shinydashboard::box(
+                    width = 4,
+                    solidHeader = FALSE,
+                    status = "primary"
+                  )
+                  
+                ))
+              )),
+      ### Environment ----
+      tabItem(tabName = "environment",
+              column(
+                width = 12,
+                offset = 0,
+                fluidRow(column(
+                  style='padding-left:30px;padding-bottom: 30px;',
+                  width = 6,
+                  h1(strong("Environment"), style = "font-size:50px;")
+                  
+                ),
+                column(width = 4)),
+                fluidRow(column(
+                  width = 12,
+                  shinydashboard::box(
+                    width = 8,
+                    solidHeader = FALSE,
+                    status = "primary",
+                    dataUI(
+                      "environment",
+                      choices = list(
+                        "Wildfire Exposure",
+                        "Heat Exposure",
+                        "Flood Exposure",
+                        "Multihazard Exposure",
+                        "Multihazard Exposure and Population Sensitivity",
+                        "Average Impervious Cover",
+                        "Average Tree Cover"
+                      ),
+                      selected = "Average Tree Cover"
+                    ),
+                    mapUI("env_map", height = "700")
+                  ),
+                  shinydashboard::box(
+                    width = 4,
+                    solidHeader = FALSE,
+                    status = "primary",
+                    barplotUI("env_bar")
+                  )
+                  
+                ))
+              )),
+      ### Health ----
+      tabItem(tabName = "health",
+              column(
+                width = 12,
+                offset = 0,
+                fluidRow(column(
+                  style='padding-left:30px;padding-bottom: 30px;',
+                  width = 6,
+                  h1(strong("Health"), style = "font-size:50px;")
+                ),
+                column(width = 4)),
+                fluidRow(column(
+                  width = 12,
+                  shinydashboard::box(
+                    width = 8,
+                    solidHeader = FALSE,
+                    status = "primary",
+                    dataUI(
+                      "health",
+                      choices = list(
+                        "Asthma Prevalence",
+                        "Asthma Prevalence in Children",
+                        "Asthma Prevalence in Adults"
+                      ),
+                      selected = "Asthma Prevalence"
+                    ),
+                    mapUI("hel_map", height = "700")
+                  ),
+                  shinydashboard::box(
+                    width = 4,
+                    solidHeader = FALSE,
+                    status = "primary",
+                    barplotUI("hel_bar")
+                  )
+                  
+                ))
+              )),
+      ### Social ----
+      tabItem(tabName = "social",
+              column(
+                width = 12,
+                offset = 0,
+                fluidRow(column(
+                  style='padding-left:30px;padding-bottom: 30px;',
+                  width = 6,
+                  h1(strong("Social Vulnerability"), style = "font-size:50px;")
+                ),
+                column(width = 4)),
+                fluidRow(column(
+                  width = 12,
+                  shinydashboard::box(
+                    width = 8,
+                    solidHeader = FALSE,
+                    status = "primary",
+                    dataUI(
+                      "social",
+                      choices = list(
+                        "Log Population Density",
+                        "% people of color",
+                        "% low-income",
+                        "% under age 5",
+                        "% over age 64",
+                        "Average Vehicles per person",
+                        "Percent of households without a car",
+                        "Population Sensitivity"
+                      ),
+                      selected = "Log Population Density"
+                    ),
+                    mapUI("soc_map", height = "700")
+                  ),
+                  shinydashboard::box(
+                    width = 4,
+                    solidHeader = FALSE,
+                    status = "primary",
+                    barplotUI("soc_bar")
+                  )
+                  
+                )),
+              )),
+      ### Definitions ----
+      tabItem(tabName = "definitions",
+              column(
+                width = 10,
+                offset = 1,
+                style='padding-left:30px;padding-bottom: 30px;',
+                h1(strong("Variables and Definitions"), style = "font-size:50px;"),
+                fluidRow(
+                  shinydashboard::box(
+                    width = 12,
+                    solidHeader = FALSE,
+                    status = "primary",
+                    dataTableOutput("definitions")
+                  )
+                ),
+                
+              )),
+      ### Attributions ----
+      tabItem(
+        tabName = "attributions",
+        column(
+          width = 10,
+          offset = 1,
+          style='padding-left:30px;padding-bottom: 30px;',
+          h1(strong("Attributions"), style = "font-size:50px;"),
           fluidRow(
             userBox(
               title = userDescription(
@@ -214,8 +436,6 @@ ui = shinydashboard::dashboardPage(
               "As an employee of the City of Austin Office of Sustainability, Marc works with city departments to embed climate change resiliency into long term operation and asset management planning. In this role, he also supports community organizers to increase climate resilience in the Eastern Crescent."
             )
           ),
-          br(),
-          br(),
           fluidRow(
             userBox(
               title = userDescription(
@@ -253,181 +473,7 @@ ui = shinydashboard::dashboardPage(
           )
           
         )
-      ),
-      ### AQ ----
-      tabItem(tabName = "air",
-              column(
-                width = 12,
-                offset = 0,
-                fluidRow(column(
-                  width = 6,
-                  dataUI_v2( #Selector UI
-                    "air",
-                    choices = list(
-                      "Ozone - CAPCOG",
-                      "PM2.5",
-                      "PM2.5 - CAPCOG",
-                      "Percentile for PM2.5 level in air"
-                    ),
-                    selected = "PM2.5"
-                  )
-                ),
-                column(width = 4)),
-                fluidRow(column(
-                  width = 12,
-                  shinydashboard::box(
-                    title = "Air Quality Map",
-                    width = 8,
-                    solidHeader = FALSE,
-                    status = "primary",
-                    mapUI("air_map", height = "700") #Map UI
-                  ),
-                  shinydashboard::box(
-                    title = "Air Quality Plots",
-                    width = 4,
-                    solidHeader = FALSE,
-                    status = "primary"
-                  )
-                  
-                ))
-              )),
-      ### Environment ----
-      tabItem(tabName = "environment",
-              column(
-                width = 12,
-                offset = 0,
-                fluidRow(column(
-                  width = 6,
-                  dataUI_v2(
-                    "environment",
-                    choices = list(
-                      "Wildfire Exposure",
-                      "Heat Exposure",
-                      "Flood Exposure",
-                      "Multihazard Exposure",
-                      "Multihazard Exposure and Population Sensitivity",
-                      "Average Impervious Cover",
-                      "Average Tree Cover"
-                    ),
-                    selected = "Average Tree Cover"
-                  )
-                ),
-                column(width = 4)),
-                fluidRow(column(
-                  width = 12,
-                  shinydashboard::box(
-                    title = "Environment Map",
-                    width = 8,
-                    solidHeader = FALSE,
-                    status = "primary",
-                    mapUI("env_map", height = "700")
-                  ),
-                  shinydashboard::box(
-                    title = "Environment Plots",
-                    width = 4,
-                    solidHeader = FALSE,
-                    status = "primary",
-                    barplotUI("env_bar"),
-                    boxplotUI("env_bar2")
-                  )
-                  
-                ))
-              )),
-      ### Health ----
-      tabItem(tabName = "health",
-              column(
-                width = 12,
-                offset = 0,
-                fluidRow(column(
-                  width = 6,
-                  dataUI_v2(
-                    "health",
-                    choices = list(
-                      "Asthma Prevalence",
-                      "Asthma Prevalence in Children",
-                      "Asthma Prevalence in Adults"
-                    ),
-                    selected = "Asthma Prevalence"
-                  )
-                ),
-                column(width = 4)),
-                fluidRow(column(
-                  width = 12,
-                  shinydashboard::box(
-                    title = "Health Map",
-                    width = 8,
-                    solidHeader = FALSE,
-                    status = "primary",
-                    mapUI("hel_map", height = "700")
-                  ),
-                  shinydashboard::box(
-                    title = "Health Plots",
-                    width = 4,
-                    solidHeader = FALSE,
-                    status = "primary",
-                    barplotUI("hel_bar")
-                  )
-                  
-                ))
-              )),
-      ### Social ----
-      tabItem(tabName = "social",
-              column(
-                width = 12,
-                offset = 0,
-                fluidRow(column(
-                  width = 6,
-                  dataUI_v2(
-                    "social",
-                    choices = list(
-                      "Log Population Density",
-                      "% people of color",
-                      "% low-income",
-                      "% under age 5",
-                      "% over age 64",
-                      "Average Vehicles per person",
-                      "Percent of households without a car",
-                      "Population Sensitivity"
-                    ),
-                    selected = "Log Population Density"
-                  )
-                ),
-                column(width = 4)),
-                fluidRow(column(
-                  width = 12,
-                  shinydashboard::box(
-                    title = "Social Vulnerability Map",
-                    width = 8,
-                    solidHeader = FALSE,
-                    status = "primary",
-                    mapUI("soc_map", height = "700")
-                  ),
-                  shinydashboard::box(
-                    title = "Social Vulnerability Plots",
-                    width = 4,
-                    solidHeader = FALSE,
-                    status = "primary",
-                    barplotUI("soc_bar")
-                  )
-                  
-                )),
-              )),
-      ### Definitions ----
-      tabItem(tabName = "definitions",
-              column(
-                width = 10,
-                offset = 1,
-                fluidRow(
-                  shinydashboard::box(
-                    title = "Variables and definitions",
-                    width = 12,
-                    solidHeader = FALSE,
-                    status = "primary",
-                    dataTableOutput("definitions")
-                  )
-                ),
-                
-              ))
+      )
     )
   )
 )
@@ -448,41 +494,11 @@ ui = shinydashboard::dashboardPage(
 
 # Server ----
 server <- function(input, output, session) {
-  # start introjs when button is pressed with custom options and events
-  # observeEvent(input$help,
-  #              introjs(
-  #                session,
-  #                options = list(
-  #                  steps = data.frame(
-  #                    element = c(
-  #                      "#select_intro",
-  #                      "#demo_intro",
-  #                      "#my_address_intro",
-  #                      "#map_intro"
-  #                    ),
-  #                    intro = c(
-  #                      includeMarkdown("tooltips/select_intro.md"),
-  #                      includeMarkdown("tooltips/demographic_intro.md"),
-  #                      includeMarkdown("tooltips/my_address_intro.md"),
-  #                      includeMarkdown("tooltips/map_intro.md")
-  #                    ),
-  #                    position = c("auto",
-  #                                 "auto",
-  #                                 "auto",
-  #                                 "auto")
-  #                  ),
-  #                  "nextLabel" = "Next",
-  #                  "prevLabel" = "Previous",
-  #                  "skipLabel" = "Exit"
-  #                ),
-  #              ))
-  # 
-  
   
   ### AQ ----
   
   #Variable to visualize
-  air <- dataServer_v2("air",data = austin_map)
+  air <- dataServer("air",data = austin_map)
   variable_air <- air$df
   selected_air <- air$var
   
@@ -492,35 +508,30 @@ server <- function(input, output, session) {
   ### Environment ----
   
   #Environment Variables to visualize
-  env <- dataServer_v2("environment", data = austin_map)
+  env <- dataServer("environment", data = austin_map)
   variable_env <- env$df
   selected_env <- env$var
   
-  env2 <- dataServer_v2("environment", data = austin_map)
-  variable_env2 <- env2$df
-  selected_env2 <- env2$var
-  
   
   mapServer("env_map", data = variable_env, selected = selected_env)
-  barplotServer("env_bar", data = variable_env2)
-  barplotServer("env_bar2", data = variable_env2)
+  barplotServer("env_bar", data = variable_env)
   
   ### Health ----
-  hel <- dataServer_v2("health", data = health)
+  hel <- dataServer("health", data = health)
   variable_hel <- hel$df
   selected_hel <- hel$var
   
   
   mapServer("hel_map", data = variable_hel, selected = selected_hel)
-  barplotServer("hel_bar", data = variable_env)
+  barplotServer("hel_bar", data = variable_hel)
   ### Social ----
-  soc <- dataServer_v2("social", data = austin_map)
+  soc <- dataServer("social", data = austin_map)
   variable_soc <- soc$df
   selected_soc <- soc$var
   
   
   mapServer("soc_map", data = variable_soc, selected = selected_soc)
-  barplotServer("soc_bar", data = variable_env)
+  barplotServer("soc_bar", data = variable_soc)
   
   ### Definitions ----
   

@@ -1,12 +1,12 @@
 #Data Set Module
 
-dataUI_v2 <- function(id, choices, selected) {
+dataUI <- function(id, choices, selected) {
   #' choices = drop down options
   #' selected = choice that is preselected
   tagList(
     pickerInput(
       NS(id, "var"),
-      label = "Select Variable:  ",
+      label = div(style = "font-size:25px", "Select Variable:  "),
       width = 'fit',
       inline = "TRUE",
       options = list(`actions-box` = TRUE,
@@ -17,7 +17,7 @@ dataUI_v2 <- function(id, choices, selected) {
   )
 }
 
-dataServer_v2 <- function(id, data) {
+dataServer <- function(id, data) {
   moduleServer(id, function(input, output, session) {
     #' data = data to be filtered
     
