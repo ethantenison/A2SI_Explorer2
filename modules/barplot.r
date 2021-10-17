@@ -2,8 +2,8 @@
 
 plotsUI <- function(id) {
   tagList(
-    plotlyOutput(NS(id, "barplot"), height = "350px"),
-    plotlyOutput(NS(id, "boxplot"), height = "350px")
+    plotlyOutput(NS(id, "barplot"), height = "325px"),
+    plotlyOutput(NS(id, "boxplot"), height = "340px")
   )
 }
 
@@ -79,10 +79,12 @@ plotsServer <- function(id, data) {
       ) |>
         config(displayModeBar = FALSE) |>
         layout(
-               font = list(size = 100),
                yaxis = list(title = paste0(unique(data()$var)," Average")),
                xaxis = list(title = "")) |>
-        layout(title = unique(data()$var), font=list(size = 35)) 
+        layout(title = unique(data()$var),
+               font=list(size = 12),
+               titlefont=list(size=25),
+               margin = list(l=50, r=50, b=50, t=75, pad=4) )
       
     })
     

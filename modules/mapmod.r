@@ -3,7 +3,7 @@
 mapUI <- function(id, height) {
   #' height = height of map output
   tagList(
-    leafletOutput(NS(id, "map"), height = height)
+    leafletOutput(NS(id, "map"), height = height),
   )
 }
 
@@ -18,15 +18,15 @@ mapServer <- function(id, data, selected) {
     #This is where the passed data becomes reactive!
     output$map <- renderLeaflet({
       leaflet(data(), options = leafletOptions(zoomControl = FALSE)) |>
-        setView(lng = -97.5330332291251,
-                lat = 30.282125904548206,
-                zoom = 9)  |>
+        setView(lng = -97.75242943917551,
+                lat = 30.327729034791303,
+                zoom = 10)  |>
         addProviderTiles(providers$CartoDB.Positron) |>
         htmlwidgets::onRender("function(el, x) {
         L.control.zoom({ position: 'topright' }).addTo(this)
     }")
     })
-    
+#    30.277729034791303, -97.75242943917551
     
     #Color Palette for Map
     pal <- reactive({

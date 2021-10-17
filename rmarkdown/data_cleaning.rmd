@@ -11,6 +11,8 @@ knitr::opts_chunk$set(
 	message = FALSE,
 	warning = FALSE
 )
+
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 ```
 
 ### Reading Raw Data
@@ -361,11 +363,56 @@ acs2 <- acs |>
     "county"
   ) 
 
+
+#enter your key census_api_key("Your key here")
+demo <-get_acs(state="TX", county = counties, geography="block group",year = 2017,
+              variables=vars, geometry= F) 
+
+demo <- demo |>
+  separate(NAME, c("bg", "tract", "county"), sep = ",") |>
+  pivot_wider(names_from = variable, values_from = c(estimate, moe)) |>
+  rename(
+    "population" = estimate_B02001_001,
+    "white_alone" = estimate_B02001_002,
+    "black_alone" = estimate_B02001_003,
+    "asian_alone" = estimate_B02001_005,
+    "hispanic" = estimate_B03002_012
+  ) |>
+  mutate(
+    "% White-Alone" = white_alone / population,
+    "% Black-Alone" = black_alone / population,
+    "% Asian-Alone" = asian_alone / population,
+    "% Hispanic" = hispanic / population
+  ) |>
+  dplyr::select(
+    GEOID,
+    population,
+    "% White-Alone",
+    "% Black-Alone",
+    "% Asian-Alone",
+    "% Hispanic", 
+    "county"
+  ) 
+
+
+geometry <- df |>
+  dplyr::select(id,
+                geometry,
+                "% low-income") 
+
+demo <- demo |>
+  pivot_longer(`% White-Alone`:`% Hispanic`, names_to = "var") |>
+  left_join(geometry, by = c("GEOID" = "id")) |>
+  dplyr::select(GEOID, var, value, `% low-income`, geometry) 
+  
+  
 df3 <- df2 |>
-  left_join(acs2, by = c("id" = "GEOID")) 
+  rename("GEOID" =  "id") |>
+  bind_rows(demo) |>
+  left_join(acs2, by = "GEOID") 
   
 
-saveRDS(df3, "data/austin_composite.rds")
+#saveRDS(df3, "data/austin_composite.rds")
 
 ```
 
@@ -431,7 +478,80 @@ asthma <- asthma |>
 
 
 asthma <- st_as_sf(asthma) |> 
-  st_transform("+proj=longlat +ellps=WGS84 +datum=WGS84")
+  st_transform("+proj=longlat +ellps=WGS84 +datum=WGS84") |>
+  distinct()
 
 saveRDS(asthma, "data/asthma_for_app.rds")
+
+
+df3 <- df3 |>
+  bind_rows(asthma) |>
+  distinct()
+
+saveRDS(df3, "data/austin_composite.rds")
 ```
+
+```{r social_vulneraabilities}
+
+aq <- df3 |>
+  filter(var %in% c("Ozone - CAPCOG",
+                        "PM2.5",
+                        "PM2.5 - CAPCOG",
+                        "Percentile for PM2.5 level in air"))
+
+saveRDS(aq, "data/aq.rds")
+
+env <- df3 |>
+  filter(var %in% c("Wildfire Exposure",
+                        "Heat Exposure",
+                        "Flood Exposure",
+                        "Multihazard Exposure",
+                        "Multihazard Exposure and Population Sensitivity",
+                        "Average Impervious Cover",
+                        "Average Tree Cover"))
+
+saveRDS(env, "data/environment.rds")
+
+soc <- df3 |>
+  filter(
+    var %in% c(
+      "Log Population Density",
+      "% White-Alone",
+      "% Black-Alone",
+      "% Asian-Alone",
+      "% Hispanic",
+      "% low-income",
+      "% under age 5",
+      "% over age 64",
+      "Average Vehicles per person",
+      "Percent of households without a car",
+      "Population Sensitivity"
+    )
+  )
+
+saveRDS(soc, "data/soc.rds")
+
+
+
+```
+
+
+```{r test_soc}
+
+test <- soc |>
+  filter(var == "% White-Alone") |>
+  distinct()
+
+test <- as.data.frame(test)
+    test <- st_as_sf(test)
+    test <-
+      st_transform(test, "+proj=longlat +ellps=WGS84 +datum=WGS84")
+
+
+leaflet() %>% 
+    addTiles() %>% 
+    addPolygons(data=test, weight = 2, fillColor = "yellow")
+
+```
+
+
