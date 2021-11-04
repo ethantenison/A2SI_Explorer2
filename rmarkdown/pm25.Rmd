@@ -45,6 +45,21 @@ leaflet() %>%
                 fillColor = ~colorQuantile("RdYlGn", value)(value),
                 opacity = 0)
 ```
+# Converting polygons to points
+
+Converting sf polygon dataframe into sf points 
+```{r points}
+
+pm_points <- pm |>
+  st_centroid() |> 
+  st_transform('+proj=longlat +ellps=WGS84 +datum=WGS84') %>%
+  # since you want the centroids in a second geometry col:
+  st_geometry() |> 
+  st_as_sf()
+  
+
+plot(pm_points)
+```
 
 # Getting census tracts
 
@@ -54,10 +69,95 @@ library(tigris)
 
 #Bastrop, Blanco, Burnet, Caldwell, Fayette, Hays, Lee, Llano, Travis, and Williamson counties
 
-fips <- c("48031", "053", "055", "149", "209", "287", "299", "453", "491")
+counties <- c("Travis", "Bastrop","Blanco", "Burnet", "Caldwell",
+              "Fayette", "Hays", "Lee", "Llano", "Williamson")
 
-tx_ct <- tracts(state = "48", county = fips,year = 2019)
+tx_ct <- tracts(state = "TX", county = counties,year = 2019)
 
+tx_ct <- tx_ct |> 
+  st_transform('+proj=longlat +ellps=WGS84 +datum=WGS84') |> 
+  # since you want the centroids in a second geometry col:
+  select(GEOID, geometry) |> 
+  st_as_sf()
+
+plot(tx_ct)
+
+```
+
+# Joining points to census tracts
+
+```{r point_tracts}
+
+#points_in_tract <- st_join(pm_points,tx_ct, join = st_contains)
+
+pi <- st_contains(tx_ct,pm_points, sparse = F) %>% 
+  as.data.frame() |> 
+  remove_rownames() |> 
+  mutate(across(everything(), as.character))
+  
+
+colnames(pi) <- pm$GEOID
+pi$tract <- tx_ct$GEOID
+
+pi2 <- pi |> 
+  pivot_longer(cols = 1:1057,names_to = "GEOID") |> 
+  filter(value != "FALSE") |> 
+  select(-value)
+
+  
+pm_tracts <- pm |> 
+  left_join(pi2, by = "GEOID") |> 
+  group_by(tract) |> 
+  summarize(mean_value = mean(value)) |> 
+  st_drop_geometry() |> 
+  mutate(var = "PM2.5")
+
+write.csv(pm_tracts, "./data/pm25_tracts.csv")
+
+
+```
+
+# Now for zipcodes!
+
+```{r zipcodes}
+
+
+counties <- c("Travis", "Bastrop","Blanco", "Burnet", "Caldwell",
+              "Fayette", "Hays", "Lee", "Llano", "Williamson")
+
+tx_zctas <- zctas(state = "48",year = 2010, )
+
+tx_zctas <- tx_zctas |> 
+  st_transform('+proj=longlat +ellps=WGS84 +datum=WGS84') |> 
+  # since you want the centroids in a second geometry col:
+  select(ZCTA5CE10, geometry) |> 
+  st_as_sf()
+
+#plot(tx_zctas)
+
+pi <- st_contains(tx_zctas,pm_points, sparse = F) %>% 
+  as.data.frame() |> 
+  remove_rownames() |> 
+  mutate(across(everything(), as.character))
+  
+
+colnames(pi) <- pm$GEOID
+pi$zctas <- tx_zctas$ZCTA5CE10
+
+pi2 <- pi |> 
+  pivot_longer(cols = 1:1057,names_to = "GEOID") |> 
+  filter(value != "FALSE") |> 
+  select(-value)
+
+  
+pm_zip <- pm |> 
+  left_join(pi2, by = "GEOID") |> 
+  group_by(zctas) |> 
+  summarize(mean_value = mean(value)) |> 
+  st_drop_geometry() |> 
+  mutate(var = "PM2.5")
+
+write.csv(pm_tracts, "./data/pm25_zctas.csv")
 
 ```
 
