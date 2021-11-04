@@ -1,0 +1,63 @@
+---
+title: "pm25"
+author: "Ethan Tenison"
+date: "11/4/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+# Reading the data
+
+```{r read}
+
+library(tidyverse)
+library(sf)
+library(leaflet)
+
+pm<- readRDS("data/aq.rds") |> 
+  filter(var == "PM2.5"  )
+  
+
+```
+
+
+# Initial Plotting
+
+```{r}
+pm <- as.data.frame(pm)
+    pm <- st_as_sf(pm)
+    pm <-
+      st_transform(pm, "+proj=longlat +ellps=WGS84 +datum=WGS84")
+
+
+leaflet() %>% 
+    addTiles() %>% 
+    addPolygons(data=pm, weight = 2,
+                fillColor = ~colorQuantile("RdYlGn", value)(value),
+                opacity = 0)
+```
+
+# Getting census tracts
+
+```{r ct}
+library(tigris)
+
+
+#Bastrop, Blanco, Burnet, Caldwell, Fayette, Hays, Lee, Llano, Travis, and Williamson counties
+
+fips <- c("48031", "053", "055", "149", "209", "287", "299", "453", "491")
+
+tx_ct <- tracts(state = "48", county = fips,year = 2019)
+
+
+```
+

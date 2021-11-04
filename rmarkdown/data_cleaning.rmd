@@ -337,6 +337,12 @@ counties <- c("Travis", "Bastrop","Blanco", "Burnet", "Caldwell",
 acs <-get_acs(state="TX", county = counties, geography="block group",year = 2017,
               variables=vars, geometry= F) 
 
+test <- get_acs(
+  geography = "metropolitan statistical area/micropolitan statistical area",
+  year = 2017,
+  variables = c(total_pop = "B01001_001"),
+  )
+
 acs2 <- acs |>
   separate(NAME, c("bg", "tract", "county"), sep = ",") |>
   pivot_wider(names_from = variable, values_from = c(estimate, moe)) |>
