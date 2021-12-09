@@ -558,6 +558,8 @@ leaflet() %>%
     addTiles() %>% 
     addPolygons(data=test, weight = 2, fillColor = "yellow")
 
+
+
 ```
 
 

@@ -80,7 +80,7 @@ tx_ct <- tx_ct |>
   select(GEOID, geometry) |> 
   st_as_sf()
 
-plot(tx_ct)
+#plot(tx_ct)
 
 ```
 
@@ -110,7 +110,8 @@ pm_tracts <- pm |>
   group_by(tract) |> 
   summarize(mean_value = mean(value)) |> 
   st_drop_geometry() |> 
-  mutate(var = "PM2.5")
+  mutate(var = "PM2.5") |> 
+  pivot_wider(names_from = var, values_from = mean_value)
 
 write.csv(pm_tracts, "./data/pm25_tracts.csv")
 
@@ -155,9 +156,129 @@ pm_zip <- pm |>
   group_by(zctas) |> 
   summarize(mean_value = mean(value)) |> 
   st_drop_geometry() |> 
-  mutate(var = "PM2.5")
+  mutate(var = "PM2.5") |> 
+  pivot_wider(names_from = var, values_from = mean_value)
 
-write.csv(pm_tracts, "./data/pm25_zctas.csv")
+write.csv(pm_zip, "./data/pm25_zctas.csv")
+
+```
+
+# Now lets do the same for Asthma! 
+
+```{r asthma}
+
+library(readr)
+asthma <- read_csv("data/Asthma_15_19_tract.csv") |> 
+  mutate(GEOID = as.character(GEOID)) 
+  
+#adding the geometry 
+asthma <- asthma |> 
+  left_join(tx_ct, by = "GEOID") |> 
+  st_as_sf()
+
+
+asthma_points <- asthma |>
+  st_centroid() |> 
+  st_transform('+proj=longlat +ellps=WGS84 +datum=WGS84') %>%
+  # since you want the centroids in a second geometry col:
+  st_geometry() |> 
+  st_as_sf()
+
+tx_zctas <- zctas(state = "48",year = 2010, )
+
+tx_zctas <- tx_zctas |> 
+  st_transform('+proj=longlat +ellps=WGS84 +datum=WGS84') |> 
+  # since you want the centroids in a second geometry col:
+  select(ZCTA5CE10, geometry) |> 
+  st_as_sf()
+
+pi3 <- st_contains(tx_zctas,asthma, sparse = F) %>% 
+  as.data.frame() |> 
+  remove_rownames() |> 
+  mutate(across(everything(), as.character))
+  
+
+colnames(pi3) <- asthma$GEOID
+pi3$zctas <- tx_zctas$ZCTA5CE10
+
+pi4 <- pi3 |> 
+  pivot_longer(cols = 1:377,names_to = "GEOID") |> 
+  filter(value != "FALSE") |> 
+  select(-value)
+
+
+asthma_zip <- asthma |> 
+  left_join(pi4, by = "GEOID") |> 
+  group_by(zctas) |> 
+  summarize(mean_value = mean(total_clinical)) |> 
+  st_drop_geometry() |> 
+  mutate(var = "Incidence Rate of ED Asthma Visits") |> 
+  pivot_wider(names_from = var, values_from = mean_value)
+
+write.csv(asthma_zip, "./data/Asthma_15_19_zcta.csv")
+
+```
+
+# Combining asthma and pm 
+```{r pmasthma}
+
+asthma_tract <- readRDS("./data/asthma_prev_2015_2019_capcog_tracts.rds")
+
+asthma_pm <- full_join(asthma_tract, pm_tracts, by = c("GEOID" = "tract"))
+
+write.csv(asthma_pm, "./data/asthma_pm_tracts.csv")
+
+asthma_zip <- readRDS("./data/asthma_prev_2015_2019_capcog_zip.rds")
+
+asthma_pm_zip <- full_join(asthma_zip, pm_zip, by = c("GEOID" = "zctas"))
+
+write.csv(asthma_pm_zip, "./data/asthma_pm_zip.csv")
+
+```
+
+
+
+```{r projecting asthma}
+
+asthma_tract <- readRDS("./data/asthma_prev_2015_2019_capcog_tracts.rds")
+
+asthma_tract_tigris <- asthma_tract |> 
+  left_join(tx_ct, by = "GEOID") |> 
+  st_as_sf()
+
+asthma_points <- asthma_tract_tigris |>
+  st_centroid() |> 
+  st_transform('+proj=longlat +ellps=WGS84 +datum=WGS84') %>%
+  # since you want the centroids in a second geometry col:
+  st_geometry() |> 
+  st_as_sf()
+
+
+pi5 <- st_contains(tx_zctas,asthma_points, sparse = F) %>% 
+  as.data.frame() |> 
+  remove_rownames() |> 
+  mutate(across(everything(), as.character))
+  
+
+colnames(pi5) <- asthma_tract$GEOID
+pi5$tract <-  tx_zctas$ZCTA5CE10
+
+pi6 <- pi5 |> 
+  pivot_longer(cols = 1:377,names_to = "GEOID") |> 
+  filter(value != "FALSE") |> 
+  select(-value)
+
+
+asthma_zip <- asthma |> 
+  left_join(pi6, by = "GEOID") |> 
+  group_by(zctas) |> 
+  summarize(mean_value = mean(total_clinical)) |> 
+  st_drop_geometry() |> 
+  mutate(var = "Incidence Rate of ED Asthma Visits") |> 
+  pivot_wider(names_from = var, values_from = mean_value)
+
+write.csv(asthma_zip, "./data/Asthma_15_19_zcta.csv")
+```
 
 ```
 

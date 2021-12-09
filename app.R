@@ -117,8 +117,36 @@ ui = shinydashboard::dashboardPage(
       tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
     ),
     tags$script(
+      '
+      // Define function to set height of "landing box"
+      setHeight = function() {
+        var window_height = $(window).height();
+        var header_height = $(".main-header").height();
+
+        var boxHeight = window_height - header_height - 750;
+
+        $("#landing_box1").height(boxHeight);
+        $("#landing_box2").height(boxHeight);
+        $("#landing_box3").height(boxHeight);
+        $("#landing_box4").height(boxHeight);
+        $("#image1").height(boxHeight);
+        $("#image2").height(boxHeight);
+        $("#image3").height(boxHeight);
+        $("#image4").height(boxHeight);
+      };
+
+      // Set input$box_height when the connection is established
+      $(document).on("shiny:connected", function(event) {
+        setHeight();
+      });
+
+      // Refresh the box height on every window resize event    
+      $(window).on("resize", function(){
+        setHeight();
+      });
+    ',
       HTML(
-        '
+        '// Sets the name next to navbar 
       $(document).ready(function() {
         $("header").find("nav").append(\'<span class="myClass", style="color:white"> Austin Area Sustainability Indicators </span>\');
       })
@@ -138,73 +166,74 @@ ui = shinydashboard::dashboardPage(
                     background = "green",
                     status = "success",
                     br(),
-                    br(),
                     h1(strong("Welcome to the A2SI Dashboard!"),
                        style = "font-size:75px;"),
-                    br(),
                     br(),
                     hr(),
                     h3(
                       "This project is brought to you by the Austin Area Sustainability Indicators
-                     project (A2SI) at the University of Texas
-                     at Austin in collaborations with the City of Austin Office of Sustainability
+                     project (A2SI) in collaborations with the UT Austin Center for Health Environment Education Research (CHEER), 
+                     the City of Austin Office of Sustainability,
                      and the Capital Area Council of Governments (CAPCOG)."
                     )
                   )
                 ),
                 fluidRow(
                   shinydashboard::box(
+                    id = "landing_box1",
                     title = NULL,
-                    width = 4,
+                    width = 6,
                     solidHeader = FALSE,
                     status = "success",
-                    div(style = "text-align: center;",
-                        img(src = "images/AASI_logo_v1b-01.png",
-                            width = "75%")),
-                    br(),
-                    "The",
-                    a("Austin Area Sustainability Indicators", href = "http://www.austinindicators.org/"),
-                    "(A2SI), an initative led by Professor Patrick Bixler at the LBJ
-              School of Public Affairs, aim is to measure the quality of life, sustainability trends, and
-              serve as the foundation for a systems approach to address challenges in Central Texas."
+                    div(id = "image1",
+                      style = "text-align: center;",
+                        a(
+                          href = "http://www.austinindicators.org/",
+                          img(src = "images/AASI_logo_v1b-01.png",
+                              width = "80%", height="100%")
+                        ))
                   ),
-              shinydashboard::box(
-                width = 4,
-                solidHeader = FALSE,
-                status = "success",
-                div(style = "text-align: center;",
-                    img(src = "images/aos.png",
-                        width = "100%")),
-                br(),
-                br(),
-                "The",
-                a("City of Austin's Office of Sustainability", href = "https://www.austintexas.gov/department/sustainability"),
-                "provides leadership,
-              influences positive action through engagement, and creates measurable
-              benefits for Austin. We seek ways to ensure a thriving, equitable,
-              and ecologically resilient community. Take a look at some of our achievements.",
-              br(),
-              br()
-              
-              ),
-              shinydashboard::box(
-                width = 4,
-                solidHeader = FALSE,
-                status = "success",
-                div(style = "text-align: center;",
-                    img(src = "images/capcog.png",
-                        width = "40%")),
-                br(),
-                "The",
-                a("Capital Area Council of Governments", href = "https://www.capcog.org/"),
-                "(CAPCOG) serves as an advocate,
-              planner and coordinator on important regional issues in the 10-county
-              encompassing Austin-Round Rock-Georgetown Metropolitan Statistical Area."
-              
-              )
-              
+                  shinydashboard::box(
+                    id = "landing_box2",
+                    title = NULL,
+                    width = 6,
+                    solidHeader = FALSE,
+                    status = "success",
+                    div(id = "image2",
+                      style = "text-align: center;",
+                      a(href = "https://dellmed.utexas.edu/units/center-for-health-environment-education-research",
+                        img(src = "images/cheer.png",
+                            width = "100%", height="100%"))
+                    )
+                  )
+                ),
+                fluidRow(
+                  shinydashboard::box(
+                    id = "landing_box3",
+                    width = 6,
+                    solidHeader = FALSE,
+                    status = "success",
+                    div(id = "image3",
+                      style = "text-align: center;",
+                      a(href = "https://www.austintexas.gov/department/sustainability",
+                        img(src = "images/aos.png",
+                            width = "100%", height="100%"))
+                    )
+                  ),
+                  shinydashboard::box(
+                    id = "landing_box4",
+                    width = 6,
+                    solidHeader = FALSE,
+                    status = "success",
+                    div(id = "image4",
+                      style = "text-align: center;",
+                        a(
+                          href = "https://www.capcog.org/",
+                          img(src = "images/capcog.png",
+                              width = "25%", height="100%")
+                        ))
+                  )
                 )
-              
               )),
       ### AQ ----
       tabItem(tabName = "air",
