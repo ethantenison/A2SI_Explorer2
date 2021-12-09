@@ -1,6 +1,4 @@
 # Libraries ----
-
-
 library(shiny)
 library(shinyjs)
 library(rintrojs)
@@ -53,13 +51,17 @@ jsToggleFS <- 'shinyjs.toggleFullScreen = function() {
  }'
 
 
-ui = shinydashboard::dashboardPage(
+ui = dashboardPage(
   skin = "green",
   title = "A2SI",
   header = shinydashboard::dashboardHeader(title = tagList(
-    span(class = "logo-lg", tags$img(src = 'images/logo_skinny2.png', width =
-                                       '50%')),
-    img(src = 'images/arrow.png', width = '150%')
+    span(
+      class = "logo-lg",
+      style = "text-align: center;",
+      tags$img(src = 'images/logo_skinny2.png', width =
+                 '50%', heigh = '100%')
+    ),
+    img(src = 'images/arrow.png', width = '150%', heigh = '100%')
   )),
   sidebar = shinydashboard::dashboardSidebar(
     useShinyjs(),
@@ -69,7 +71,7 @@ ui = shinydashboard::dashboardPage(
     ## Sidebar ----
     sidebarMenu(
       id = "tabs",
-      menuItem("Welcome Page",
+      menuItem("Welcome",
                tabName = "welcome",
                icon = icon("search")),
       conditionalPanel(condition = "input.tabs == 'welcome'"),
@@ -117,39 +119,16 @@ ui = shinydashboard::dashboardPage(
       tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
     ),
     tags$script(
-      '
-      // Define function to set height of "landing box"
-      setHeight = function() {
-        var window_height = $(window).height();
-        var header_height = $(".main-header").height();
-
-        var boxHeight = window_height - header_height - 750;
-
-        $("#landing_box1").height(boxHeight);
-        $("#landing_box2").height(boxHeight);
-        $("#landing_box3").height(boxHeight);
-        $("#landing_box4").height(boxHeight);
-        $("#image1").height(boxHeight);
-        $("#image2").height(boxHeight);
-        $("#image3").height(boxHeight);
-        $("#image4").height(boxHeight);
-      };
-
-      // Set input$box_height when the connection is established
-      $(document).on("shiny:connected", function(event) {
-        setHeight();
-      });
-
-      // Refresh the box height on every window resize event    
-      $(window).on("resize", function(){
-        setHeight();
-      });
-    ',
       HTML(
-        '// Sets the name next to navbar 
+        '// Sets the name next to navbar
       $(document).ready(function() {
-        $("header").find("nav").append(\'<span class="myClass", style="color:white"> Austin Area Sustainability Indicators </span>\');
-      })
+        $("header").find("nav").append(\'<span class="myClass", style="color:white"><b>Austin Area Sustainability Indicators </b></span>\');
+      }),
+      $(document).ready(function(){
+  $("a[data-toggle=tab]").on("show.bs.tab", function(e){
+    Shiny.setInputValue("activeTab", $(this).attr("data-value"));
+  });
+});
      '
       )
     ),
@@ -167,73 +146,86 @@ ui = shinydashboard::dashboardPage(
                     status = "success",
                     br(),
                     h1(strong("Welcome to the A2SI Dashboard!"),
-                       style = "font-size:75px;"),
-                    br(),
-                    hr(),
+                       style = "font-size:5em;"),
                     h3(
                       "This project is brought to you by the Austin Area Sustainability Indicators
-                     project (A2SI) in collaborations with the UT Austin Center for Health Environment Education Research (CHEER), 
+                     project (A2SI) in collaborations with the UT Austin Center for Health Environment Education Research (CHEER),
                      the City of Austin Office of Sustainability,
                      and the Capital Area Council of Governments (CAPCOG)."
+                    ),  
+                    hr(),
+                    div(
+                      style = "text-align: center;",
+                    actionButton("welcome_bt", label = "Welcome Guide", width = '25%',
+                                 icon = icon("book-open"))
                     )
                   )
                 ),
-                fluidRow(
-                  shinydashboard::box(
-                    id = "landing_box1",
-                    title = NULL,
-                    width = 6,
-                    solidHeader = FALSE,
-                    status = "success",
-                    div(id = "image1",
-                      style = "text-align: center;",
-                        a(
-                          href = "http://www.austinindicators.org/",
-                          img(src = "images/AASI_logo_v1b-01.png",
-                              width = "80%", height="100%")
-                        ))
-                  ),
-                  shinydashboard::box(
-                    id = "landing_box2",
-                    title = NULL,
-                    width = 6,
-                    solidHeader = FALSE,
-                    status = "success",
-                    div(id = "image2",
-                      style = "text-align: center;",
-                      a(href = "https://dellmed.utexas.edu/units/center-for-health-environment-education-research",
-                        img(src = "images/cheer.png",
-                            width = "100%", height="100%"))
-                    )
-                  )
-                ),
-                fluidRow(
-                  shinydashboard::box(
-                    id = "landing_box3",
-                    width = 6,
-                    solidHeader = FALSE,
-                    status = "success",
-                    div(id = "image3",
-                      style = "text-align: center;",
-                      a(href = "https://www.austintexas.gov/department/sustainability",
-                        img(src = "images/aos.png",
-                            width = "100%", height="100%"))
-                    )
-                  ),
-                  shinydashboard::box(
-                    id = "landing_box4",
-                    width = 6,
-                    solidHeader = FALSE,
-                    status = "success",
-                    div(id = "image4",
-                      style = "text-align: center;",
-                        a(
-                          href = "https://www.capcog.org/",
-                          img(src = "images/capcog.png",
-                              width = "25%", height="100%")
-                        ))
-                  )
-                )
+                column(6,
+                       fluidRow(
+                         br(),
+                         br(),
+                         div(
+                           id = "image1",
+                           style = "text-align: center;",
+                           a(
+                             href = "http://www.austinindicators.org/",
+                             img(
+                               src = "images/AASI_logo_v1b-01.png",
+                               width = "80%",
+                               height = "100%"
+                             )
+                           )
+                         )
+                       ),
+                       fluidRow(
+                         br(),
+                         br(),
+                         div(
+                           id = "image2",
+                           style = "text-align: center;",
+                           a(
+                             href = "https://dellmed.utexas.edu/units/center-for-health-environment-education-research",
+                             img(
+                               src = "images/cheer.png",
+                               width = "100%",
+                               height = "100%"
+                             )
+                           )
+                         )
+                       )),
+                column(6,
+                       fluidRow(
+                         br(),
+                         br(),
+                         div(
+                           id = "image3",
+                           style = "text-align: center;",
+                           a(href = "https://www.austintexas.gov/department/sustainability",
+                             img(
+                               src = "images/aos.png",
+                               width = "100%",
+                               height = "100%"
+                             ))
+                         )
+                       )
+                       ,
+                       fluidRow(
+                         br(),
+                         br(),
+                         div(
+                           id = "image4",
+                           style = "text-align: center;",
+                           a(
+                             href = "https://www.capcog.org/",
+                             img(
+                               src = "images/capcog.png",
+                               width = "35%",
+                               height = "100%"
+                             )
+                           )
+                         )
+                       ))
               )),
       ### AQ ----
       tabItem(tabName = "air",
@@ -241,13 +233,14 @@ ui = shinydashboard::dashboardPage(
                 width = 12,
                 offset = 0,
                 fluidRow(
-                  column(
-                    style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
-                    width = 6,
-                    h1(strong("Air Quality"), style = "font-size:45px;")
-                  ),
-                  column(width = 4)
-                ),
+                  column(style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
+                         width = 9,
+                         h1(strong("Air Quality"))),
+                  column(style = 'padding-right:30px;padding-bottom: 15px;padding-top: 30px;',
+                         width = 3,
+                         actionButton("aq_bt", label = "Guide", width = '100%',
+                                      icon = icon("book-open"))
+                )),
                 fluidRow(column(
                   width = 12,
                   shinydashboard::box(
@@ -284,12 +277,9 @@ ui = shinydashboard::dashboardPage(
                 width = 12,
                 offset = 0,
                 fluidRow(
-                  column(
-                    style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
-                    width = 6,
-                    h1(strong("Environment"), style = "font-size:45px;")
-                    
-                  ),
+                  column(style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
+                         width = 6,
+                         h1(strong("Environment"))),
                   column(width = 4)
                 ),
                 fluidRow(column(
@@ -330,11 +320,9 @@ ui = shinydashboard::dashboardPage(
                 width = 12,
                 offset = 0,
                 fluidRow(
-                  column(
-                    style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
-                    width = 6,
-                    h1(strong("Health"), style = "font-size:45px;")
-                  ),
+                  column(style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
+                         width = 6,
+                         h1(strong("Health"))),
                   column(width = 4)
                 ),
                 fluidRow(column(
@@ -369,11 +357,11 @@ ui = shinydashboard::dashboardPage(
                 width = 12,
                 offset = 0,
                 fluidRow(
-                  column(
-                    style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
-                    width = 6,
-                    h1(strong("Social Vulnerability"), style = "font-size:45px;")
-                  ),
+                  column(style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
+                         width = 6,
+                         h1(strong(
+                           "Social Vulnerability"
+                         ))),
                   column(width = 4)
                 ),
                 fluidRow(column(
@@ -417,7 +405,7 @@ ui = shinydashboard::dashboardPage(
           width = 10,
           offset = 1,
           style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
-          h1(strong("Variables and Definitions"), style = "font-size:45px;"),
+          h1(strong("Variables and Definitions")),
           fluidRow(
             shinydashboard::box(
               width = 12,
@@ -436,7 +424,7 @@ ui = shinydashboard::dashboardPage(
           width = 10,
           offset = 1,
           style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
-          h1(strong("Attributions"), style = "font-size:45px;"),
+          h1(strong("Attributions")),
           fluidRow(
             userBox(
               title = userDescription(
@@ -549,6 +537,21 @@ server <- function(input, output, session) {
   #Definition Table
   output$definitions <- renderDataTable(DT::datatable(definitions,
                                                       options = list(pageLength = 10)))
+  
+  #######################################Guide buttons 
+  observeEvent(
+    input$welcome_bt, {
+      showModal(modalDialog(
+        title = "Welcome Guide",
+        includeHTML(knitr::knit2html("tooltips/welcome_guide.md", fragment.only = TRUE)), #must knit
+        easyClose = TRUE,
+        size = "l",
+        fade = TRUE
+        
+      ))
+    }
+    
+  )
   
 }
 

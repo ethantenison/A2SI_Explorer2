@@ -1,5 +1,5 @@
 .myClass {
-        font-size: 20px;
+        font-size: 1.2em;
         line-height: 50px;
         text-align: left;
         font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
@@ -28,5 +28,13 @@
 
 h1 {
   font-weight: bold;
-  font-size: 60px;
+  font-size: 3em;
+}
+
+h3 {
+  font-size: 1.5em;
+}
+
+h5 {
+  font-size: 1em;
 }
