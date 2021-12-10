@@ -15,6 +15,7 @@ library(shinydashboard)
 library(shinydashboardPlus)
 library(ggmap)
 library(googleway)
+library(shinyhelper)
 
 # Data & Scripts ----
 
@@ -145,21 +146,32 @@ ui = dashboardPage(
                     background = "green",
                     status = "success",
                     br(),
+                    fluidRow(
+                      column(
+                        width = 9,
                     h1(strong("Welcome to the A2SI Dashboard!"),
-                       style = "font-size:5em;"),
-                    h3(
-                      "This project is brought to you by the Austin Area Sustainability Indicators
-                     project (A2SI) in collaborations with the UT Austin Center for Health Environment Education Research (CHEER),
-                     the City of Austin Office of Sustainability,
-                     and the Capital Area Council of Governments (CAPCOG)."
-                    ),  
-                    hr(),
+                       style = "font-size:5em;")),
+                    column(
+                      width = 3,
                     div(
-                      style = "text-align: center;",
-                    actionButton("welcome_bt", label = "Welcome Guide", width = '25%',
-                                 icon = icon("book-open"))
-                    )
+                      style = "text-align: center;padding-right:30px;
+                      padding-bottom: 15px;padding-top: 30px;", 
+                      appButton(
+                        inputId = "welcome_bt",
+                        label = "Welcome Guide",
+                        enable_badge = TRUE, 
+                        icon = icon("book-open"),
+                        badgeColor = "red", 
+                        badgeLabel = 3,
+                        width = '100%'
+                      ))
+                    ))
                   )
+                ),
+                fluidRow(
+                  column(12,
+                         style = "padding-left:30px;",
+                  h1("Brought to you by:"))
                 ),
                 column(6,
                        fluidRow(
@@ -169,6 +181,7 @@ ui = dashboardPage(
                            id = "image1",
                            style = "text-align: center;",
                            a(
+                             target="_blank",
                              href = "http://www.austinindicators.org/",
                              img(
                                src = "images/AASI_logo_v1b-01.png",
@@ -184,7 +197,7 @@ ui = dashboardPage(
                          div(
                            id = "image2",
                            style = "text-align: center;",
-                           a(
+                           a(target="_blank",
                              href = "https://dellmed.utexas.edu/units/center-for-health-environment-education-research",
                              img(
                                src = "images/cheer.png",
@@ -202,6 +215,7 @@ ui = dashboardPage(
                            id = "image3",
                            style = "text-align: center;",
                            a(href = "https://www.austintexas.gov/department/sustainability",
+                             target="_blank",
                              img(
                                src = "images/aos.png",
                                width = "100%",
@@ -216,7 +230,7 @@ ui = dashboardPage(
                          div(
                            id = "image4",
                            style = "text-align: center;",
-                           a(
+                           a(target="_blank",
                              href = "https://www.capcog.org/",
                              img(
                                src = "images/capcog.png",
@@ -236,10 +250,18 @@ ui = dashboardPage(
                   column(style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
                          width = 9,
                          h1(strong("Air Quality"))),
-                  column(style = 'padding-right:30px;padding-bottom: 15px;padding-top: 30px;',
+                  column(style = 'padding-right:40px;padding-bottom: 15px;padding-top: 30px;text-align: center;',
                          width = 3,
-                         actionButton("aq_bt", label = "Guide", width = '100%',
-                                      icon = icon("book-open"))
+                         appButton(
+                           inputId = "aq_bt",
+                           label = "Information",
+                           enable_badge = TRUE, 
+                           icon = icon("book-open"),
+                           badgeColor = "red", 
+                           badgeLabel = 3,
+                           width = '100%',
+                           style="color: #fff; background-color: #dd4b39; border-color: #f56954"
+                         )
                 )),
                 fluidRow(column(
                   width = 12,
@@ -278,10 +300,21 @@ ui = dashboardPage(
                 offset = 0,
                 fluidRow(
                   column(style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
-                         width = 6,
+                         width = 9,
                          h1(strong("Environment"))),
-                  column(width = 4)
-                ),
+                  column(style = 'padding-right:40px;padding-bottom: 15px;padding-top: 30px;',
+                         width = 3,
+                         appButton(
+                           inputId = "env_bt",
+                           label = "Information",
+                           enable_badge = TRUE, 
+                           icon = icon("book-open"),
+                           badgeColor = "red", 
+                           badgeLabel = 3,
+                           width = '100%',
+                           style="color: #fff; background-color: #dd4b39; border-color: #f56954"
+                         )
+                )),
                 fluidRow(column(
                   width = 12,
                   shinydashboard::box(
@@ -321,10 +354,21 @@ ui = dashboardPage(
                 offset = 0,
                 fluidRow(
                   column(style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
-                         width = 6,
+                         width = 9,
                          h1(strong("Health"))),
-                  column(width = 4)
-                ),
+                  column(style = 'padding-right:40px;padding-bottom: 15px;padding-top: 30px;',
+                         width = 3,
+                         appButton(
+                           inputId = "hel_bt",
+                           label = "Information",
+                           enable_badge = TRUE, 
+                           icon = icon("book-open"),
+                           badgeColor = "red", 
+                           badgeLabel = 3,
+                           width = '100%',
+                           style="color: #fff; background-color: #dd4b39; border-color: #f56954"
+                         )
+                )),
                 fluidRow(column(
                   width = 12,
                   shinydashboard::box(
@@ -358,12 +402,23 @@ ui = dashboardPage(
                 offset = 0,
                 fluidRow(
                   column(style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
-                         width = 6,
+                         width = 9,
                          h1(strong(
                            "Social Vulnerability"
                          ))),
-                  column(width = 4)
-                ),
+                  column(style = 'padding-right:40px;padding-bottom: 15px;padding-top: 30px;',
+                         width = 3,
+                         appButton(
+                           inputId = "sv_bt",
+                           label = "Information",
+                           enable_badge = TRUE, 
+                           icon = icon("book-open"),
+                           badgeColor = "red", 
+                           badgeLabel = 3,
+                           width = '100%',
+                           style="color: #fff; background-color: #dd4b39; border-color: #f56954"
+                         )
+                )),
                 fluidRow(column(
                   width = 12,
                   shinydashboard::box(
@@ -532,7 +587,7 @@ server <- function(input, output, session) {
   mapServer("soc_map", data = variable_soc, selected = selected_soc)
   plotsServer("soc_bar", data = variable_soc)
   
-  ### Definitions ----
+  ### Information Buttons ----
   
   #Definition Table
   output$definitions <- renderDataTable(DT::datatable(definitions,
@@ -544,6 +599,61 @@ server <- function(input, output, session) {
       showModal(modalDialog(
         title = "Welcome Guide",
         includeHTML(knitr::knit2html("tooltips/welcome_guide.md", fragment.only = TRUE)), #must knit
+        easyClose = TRUE,
+        size = "l",
+        fade = TRUE
+        
+      ))
+    }
+    
+  )
+  
+  observeEvent(
+    input$aq_bt, {
+      showModal(modalDialog(
+        title = "Air Quality Guide",
+        includeHTML(knitr::knit2html("tooltips/aq_guide.md", fragment.only = TRUE)), #must knit
+        easyClose = TRUE,
+        size = "l",
+        fade = TRUE
+        
+      ))
+    }
+    
+  )
+  observeEvent(
+    input$hel_bt, {
+      showModal(modalDialog(
+        title = "Health Guide",
+        includeHTML(knitr::knit2html("tooltips/health_guide.md", fragment.only = TRUE)), #must knit
+        easyClose = TRUE,
+        size = "l",
+        fade = TRUE
+        
+      ))
+    }
+    
+  )
+  
+  observeEvent(
+    input$env_bt, {
+      showModal(modalDialog(
+        title = "Environment Guide",
+        includeHTML(knitr::knit2html("tooltips/env_guide.md", fragment.only = TRUE)), #must knit
+        easyClose = TRUE,
+        size = "l",
+        fade = TRUE
+        
+      ))
+    }
+    
+  )
+  
+  observeEvent(
+    input$sv_bt, {
+      showModal(modalDialog(
+        title = "Social Vulnerability Guide",
+        includeHTML(knitr::knit2html("tooltips/sv_guide.md", fragment.only = TRUE)), #must knit
         easyClose = TRUE,
         size = "l",
         fade = TRUE
