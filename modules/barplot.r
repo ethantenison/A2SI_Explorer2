@@ -77,6 +77,18 @@ plotsServer <- function(id, data) {
     
     
     #Plotly Barplot
+    hline <- function(y = 0, color = "red") {
+      list(
+        type = "line",
+        x0 = 0,
+        x1 = 1,
+        xref = "paper",
+        y0 = y,
+        y1 = y,
+        line = list(color = color,  dash="dot")
+      )
+    }
+    
     output$barplot <- renderPlotly({
       bar <- plot_ly(
         x = bardata()$x,
@@ -92,7 +104,8 @@ plotsServer <- function(id, data) {
         layout(title = unique(data()$var),
                font=list(size = 12),
                titlefont=list(size=25),
-               margin = list(l=50, r=50, b=50, t=75, pad=4) )
+               margin = list(l=50, r=50, b=50, t=75, pad=4),
+               shapes = list(hline(mean(bardata()$y, na.rm = TRUE))))
       
     })
     
@@ -142,7 +155,8 @@ plotsServer <- function(id, data) {
         config(displayModeBar = FALSE) |>
         layout(showlegend = FALSE,
                yaxis = list(title = unique(data()$var)),
-               xaxis = list(title = ""))
+               xaxis = list(title = ""),
+               shapes = list(hline(mean(boxdata()$value, na.rm = TRUE))))
       
     })
     

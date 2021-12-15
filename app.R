@@ -249,20 +249,7 @@ ui = dashboardPage(
                 fluidRow(
                   column(style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
                          width = 9,
-                         h1(strong("Air Quality"))),
-                  column(style = 'padding-right:40px;padding-bottom: 15px;padding-top: 30px;text-align: center;',
-                         width = 3,
-                         appButton(
-                           inputId = "aq_bt",
-                           label = "Information",
-                           enable_badge = TRUE, 
-                           icon = icon("book-open"),
-                           badgeColor = "red", 
-                           badgeLabel = 3,
-                           width = '100%',
-                           style="color: #fff; background-color: #dd4b39; border-color: #f56954"
-                         )
-                )),
+                         h1(strong("Air Quality")))),
                 fluidRow(column(
                   width = 12,
                   shinydashboard::box(
@@ -301,20 +288,7 @@ ui = dashboardPage(
                 fluidRow(
                   column(style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
                          width = 9,
-                         h1(strong("Environment"))),
-                  column(style = 'padding-right:40px;padding-bottom: 15px;padding-top: 30px;',
-                         width = 3,
-                         appButton(
-                           inputId = "env_bt",
-                           label = "Information",
-                           enable_badge = TRUE, 
-                           icon = icon("book-open"),
-                           badgeColor = "red", 
-                           badgeLabel = 3,
-                           width = '100%',
-                           style="color: #fff; background-color: #dd4b39; border-color: #f56954"
-                         )
-                )),
+                         h1(strong("Environment")))),
                 fluidRow(column(
                   width = 12,
                   shinydashboard::box(
@@ -355,20 +329,7 @@ ui = dashboardPage(
                 fluidRow(
                   column(style = 'padding-left:30px;padding-bottom: 15px;padding-top: 0px;',
                          width = 9,
-                         h1(strong("Health"))),
-                  column(style = 'padding-right:40px;padding-bottom: 15px;padding-top: 30px;',
-                         width = 3,
-                         appButton(
-                           inputId = "hel_bt",
-                           label = "Information",
-                           enable_badge = TRUE, 
-                           icon = icon("book-open"),
-                           badgeColor = "red", 
-                           badgeLabel = 3,
-                           width = '100%',
-                           style="color: #fff; background-color: #dd4b39; border-color: #f56954"
-                         )
-                )),
+                         h1(strong("Health")))),
                 fluidRow(column(
                   width = 12,
                   shinydashboard::box(
@@ -405,20 +366,7 @@ ui = dashboardPage(
                          width = 9,
                          h1(strong(
                            "Social Vulnerability"
-                         ))),
-                  column(style = 'padding-right:40px;padding-bottom: 15px;padding-top: 30px;',
-                         width = 3,
-                         appButton(
-                           inputId = "sv_bt",
-                           label = "Information",
-                           enable_badge = TRUE, 
-                           icon = icon("book-open"),
-                           badgeColor = "red", 
-                           badgeLabel = 3,
-                           width = '100%',
-                           style="color: #fff; background-color: #dd4b39; border-color: #f56954"
-                         )
-                )),
+                         )))),
                 fluidRow(column(
                   width = 12,
                   shinydashboard::box(
@@ -592,8 +540,8 @@ server <- function(input, output, session) {
   #Definition Table
   output$definitions <- renderDataTable(DT::datatable(definitions,
                                                       options = list(pageLength = 10)))
-  
-  #######################################Guide buttons 
+
+  ####################################### Welcome Button 
   observeEvent(
     input$welcome_bt, {
       showModal(modalDialog(
@@ -607,62 +555,6 @@ server <- function(input, output, session) {
     }
     
   )
-  
-  observeEvent(
-    input$aq_bt, {
-      showModal(modalDialog(
-        title = "Air Quality Guide",
-        includeHTML(knitr::knit2html("tooltips/aq_guide.md", fragment.only = TRUE)), #must knit
-        easyClose = TRUE,
-        size = "l",
-        fade = TRUE
-        
-      ))
-    }
-    
-  )
-  observeEvent(
-    input$hel_bt, {
-      showModal(modalDialog(
-        title = "Health Guide",
-        includeHTML(knitr::knit2html("tooltips/health_guide.md", fragment.only = TRUE)), #must knit
-        easyClose = TRUE,
-        size = "l",
-        fade = TRUE
-        
-      ))
-    }
-    
-  )
-  
-  observeEvent(
-    input$env_bt, {
-      showModal(modalDialog(
-        title = "Environment Guide",
-        includeHTML(knitr::knit2html("tooltips/env_guide.md", fragment.only = TRUE)), #must knit
-        easyClose = TRUE,
-        size = "l",
-        fade = TRUE
-        
-      ))
-    }
-    
-  )
-  
-  observeEvent(
-    input$sv_bt, {
-      showModal(modalDialog(
-        title = "Social Vulnerability Guide",
-        includeHTML(knitr::knit2html("tooltips/sv_guide.md", fragment.only = TRUE)), #must knit
-        easyClose = TRUE,
-        size = "l",
-        fade = TRUE
-        
-      ))
-    }
-    
-  )
-  
 }
 
 # Run App ----

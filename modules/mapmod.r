@@ -3,7 +3,8 @@
 mapUI <- function(id, height) {
   #' height = height of map output
   tagList(
-    leafletOutput(NS(id, "map"), height = height),
+    
+    leafletOutput(NS(id, "map"), height = height)
   )
 }
 
@@ -24,44 +25,7 @@ mapServer <- function(id, data, selected) {
         addProviderTiles(providers$CartoDB.Positron) |>
         htmlwidgets::onRender("function(el, x) {
         L.control.zoom({ position: 'topright' }).addTo(this)
-    }")
-    })
-#    30.277729034791303, -97.75242943917551
-    
-    #Color Palette for Map
-    pal <- reactive({
-      if (selected() == "Flood Exposure") {
-        colorNumeric(
-          palette = "RdBu",
-          n = 5,
-          reverse = FALSE,
-          domain = data()$value
-        )
-      } else {
-        colorNumeric(
-          palette = "RdBu",
-          n = 5,
-          reverse = TRUE,
-          domain = data()$value
-        )
-      }
-    })
-    
-    #Legend Title
-    definitions <- read_csv("data/definitions.csv")
-    
-    legend_title <- reactive({
-      units <- definitions |> dplyr::filter(Variable == selected())
-      units <- units$Units
-      
-      paste0(selected(), "</br>", "<h5>", units, "</h5>")
-      
-    })
-    
-    
-    #Map attributes to display
-    observe({
-      proxy <- leafletProxy("map", data = data()) |>
+    }") |> 
         clearShapes() |>
         clearControls() |>
         addPolygons(
@@ -106,14 +70,38 @@ mapServer <- function(id, data, selected) {
           title = legend_title(),
           na.label = ""
         )
-      
-      proxy
+    })
+#    30.277729034791303, -97.75242943917551
     
-    
-    
-    
+    #Color Palette for Map
+    pal <- reactive({
+      if (selected() == "Flood Exposure") {
+        colorNumeric(
+          palette = "RdBu",
+          n = 5,
+          reverse = FALSE,
+          domain = data()$value
+        )
+      } else {
+        colorNumeric(
+          palette = "RdBu",
+          n = 5,
+          reverse = TRUE,
+          domain = data()$value
+        )
+      }
     })
     
+    #Legend Title
+    definitions <- read_csv("data/definitions.csv")
+    
+    legend_title <- reactive({
+      units <- definitions |> dplyr::filter(Variable == selected())
+      units <- units$Units
+      
+      paste0(selected(), "</br>", "<h5>", units, "</h5>")
+      
+    })
     
     
     
