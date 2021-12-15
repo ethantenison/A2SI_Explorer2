@@ -2,8 +2,16 @@
 
 plotsUI <- function(id) {
   tagList(
-    plotlyOutput(NS(id, "barplot"), height = "325px"),
-    plotlyOutput(NS(id, "boxplot"), height = "340px")
+    plotlyOutput(NS(id, "barplot"), height = "325px")%>%
+      helper(icon = "question",
+             colour = "#dd4b39",
+             type = "markdown",
+             content = "Columns"),
+    plotlyOutput(NS(id, "boxplot"), height = "340px") %>%
+      helper(icon = "question",
+             colour = "#dd4b39",
+             type = "markdown",
+             content = "Columns")
   )
 }
 

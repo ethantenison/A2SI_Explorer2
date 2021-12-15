@@ -551,7 +551,7 @@ server <- function(input, output, session) {
   ### AQ ----
   
   #Variable to visualize
-  air <- dataServer("air", data = aq)
+  air <- dataServer("air", data = aq, info = "aq")
   variable_air <- air$df
   selected_air <- air$var
   
@@ -562,7 +562,7 @@ server <- function(input, output, session) {
   ### Environment ----
   
   #Environment Variables to visualize
-  env <- dataServer("environment", data = env)
+  env <- dataServer("environment", data = env, info = "env")
   variable_env <- env$df
   selected_env <- env$var
   
@@ -571,7 +571,7 @@ server <- function(input, output, session) {
   plotsServer("env_bar", data = variable_env)
   
   ### Health ----
-  hel <- dataServer("health", data = health)
+  hel <- dataServer("health", data = health, info = "hel")
   variable_hel <- hel$df
   selected_hel <- hel$var
   
@@ -579,7 +579,7 @@ server <- function(input, output, session) {
   mapServer("hel_map", data = variable_hel, selected = selected_hel)
   plotsServer("hel_bar", data = variable_hel)
   ### Social ----
-  soc <- dataServer("social", data = soc)
+  soc <- dataServer("social", data = soc, info = "soc")
   variable_soc <- soc$df
   selected_soc <- soc$var
   
