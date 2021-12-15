@@ -98,6 +98,7 @@ dataServer <- function(id, data, info) {
     }
     
     observeEvent(input$info, {
+      if(info == "aq"){
       showModal(
         modalDialog(
           title = "Air Quality",
@@ -111,10 +112,57 @@ dataServer <- function(id, data, info) {
           
         )
       )
+      }
+      else if (info == "env") {
+        showModal(
+          modalDialog(
+            title = "Environment",
+            includeHTML(
+              knitr::knit2html("tooltips/env_guide.md", fragment.only = TRUE)
+            ),
+            #must knit
+            easyClose = TRUE,
+            size = "l",
+            fade = TRUE
+            
+          )
+        )
+      }
+      else if (info == "hel") {
+        showModal(
+          modalDialog(
+            title = "Health",
+            includeHTML(
+              knitr::knit2html("tooltips/health_guide.md", fragment.only = TRUE)
+            ),
+            #must knit
+            easyClose = TRUE,
+            size = "l",
+            fade = TRUE
+            
+          )
+        )
+      }
+      else if (info == "soc") {
+        showModal(
+          modalDialog(
+            title = "Social Vulnerability",
+            includeHTML(
+              knitr::knit2html("tooltips/sv_guide.md", fragment.only = TRUE)
+            ),
+            #must knit
+            easyClose = TRUE,
+            size = "l",
+            fade = TRUE
+            
+          )
+        )
+      }
     }, ignoreInit = TRUE)
     
     
-    # THIS HAS TO BE LAST OTHERWISE IT WONT WORK 
+    
+    # THIS HAS TO BE LAST OTHERWISE IT WONT
     list(
       #It's important to wrap outputs as reactive
       var = reactive(input$var),
