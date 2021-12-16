@@ -16,6 +16,8 @@ library(shinydashboardPlus)
 library(ggmap)
 library(googleway)
 library(shinyhelper)
+library(readxl)
+library(rhandsontable)
 
 # Data & Scripts ----
 
@@ -540,12 +542,12 @@ server <- function(input, output, session) {
   #Definition Table
   output$definitions <- renderDataTable(DT::datatable(definitions,
                                                       options = list(pageLength = 10)))
+  
 
   ####################################### Welcome Button 
   observeEvent(
     input$welcome_bt, {
       showModal(modalDialog(
-        title = "Welcome Guide",
         includeHTML(knitr::knit2html("tooltips/welcome_guide.md", fragment.only = TRUE)), #must knit
         easyClose = TRUE,
         size = "l",

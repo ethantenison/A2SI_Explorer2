@@ -1,0 +1,31 @@
+---
+title: "Air Quality Information"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(readr)
+library(readxl)
+library(kableExtra)
+library(knitr)
+
+definitions <- read_excel("data/definitions.xlsx", 
+    sheet = "aq")
+
+ kbl(definitions, escape = F) |> 
+   kable_minimal(c("hover", "striped"), full_width = T) |> 
+   scroll_box(width = "100%")
+
+#kable(definitions) 
+```
+

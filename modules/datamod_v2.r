@@ -52,13 +52,13 @@ dataUI <- function(id, choices, selected) {
       width = 3,
       appButton(
         inputId = NS(id, "info"),
-        label = "Information",
+        label = "Definitions",
         enable_badge = TRUE,
         icon = icon("book-open"),
         badgeColor = "red",
         badgeLabel = 3,
         width = '100%',
-        style = "color: #fff; background-color: #dd4b39; border-color: #f56954"
+        style = "color: #fff; background-color: #0073b7; border-color: #00c0ef"
       )
     )
   ))
@@ -70,6 +70,8 @@ dataServer <- function(id, data, info) {
     
     #Variable Info Table
     definitions <- read_csv("data/definitions.csv")
+    definitions2 <- read_excel("data/definitions.xlsx", 
+                              sheet = "aq")
     
     varinfo_reactive <- reactive({
       def <- definitions |> filter(Variable == input$var) |>
@@ -101,7 +103,6 @@ dataServer <- function(id, data, info) {
       if(info == "aq"){
       showModal(
         modalDialog(
-          title = "Air Quality",
           includeHTML(
             knitr::knit2html("tooltips/aq_guide.md", fragment.only = TRUE)
           ),
@@ -116,7 +117,6 @@ dataServer <- function(id, data, info) {
       else if (info == "env") {
         showModal(
           modalDialog(
-            title = "Environment",
             includeHTML(
               knitr::knit2html("tooltips/env_guide.md", fragment.only = TRUE)
             ),
@@ -131,7 +131,6 @@ dataServer <- function(id, data, info) {
       else if (info == "hel") {
         showModal(
           modalDialog(
-            title = "Health",
             includeHTML(
               knitr::knit2html("tooltips/health_guide.md", fragment.only = TRUE)
             ),
@@ -146,7 +145,6 @@ dataServer <- function(id, data, info) {
       else if (info == "soc") {
         showModal(
           modalDialog(
-            title = "Social Vulnerability",
             includeHTML(
               knitr::knit2html("tooltips/sv_guide.md", fragment.only = TRUE)
             ),
@@ -159,7 +157,6 @@ dataServer <- function(id, data, info) {
         )
       }
     }, ignoreInit = TRUE)
-    
     
     
     # THIS HAS TO BE LAST OTHERWISE IT WONT

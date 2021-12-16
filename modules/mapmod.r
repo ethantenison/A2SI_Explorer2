@@ -17,7 +17,10 @@ mapServer <- function(id, data, selected) {
     
     #create the map
     #This is where the passed data becomes reactive!
+
+    
     output$map <- renderLeaflet({
+      
       leaflet(data(), options = leafletOptions(zoomControl = FALSE)) |>
         setView(lng = -97.75242943917551,
                 lat = 30.327729034791303,
@@ -50,14 +53,8 @@ mapServer <- function(id, data, selected) {
             ": ",
             format(data()$value, digits = 1),
             "<h6/>",
-            "Census Block Group: ",
-            id,
-            "<h6/>",
             "Total population: ",
             format(data()$`population`, big.mark = ","),
-            "<h6/>",
-            "People of Color (%): ",
-            format(data()$`% people of color`, digits = 1),
             "<h6/>",
             "Low Income (%): ",
             format(data()$`% low-income`, digits = 1)
@@ -69,7 +66,8 @@ mapServer <- function(id, data, selected) {
           values = ~ data()$value,
           title = legend_title(),
           na.label = ""
-        )
+        ) 
+
     })
 #    30.277729034791303, -97.75242943917551
     
@@ -93,7 +91,8 @@ mapServer <- function(id, data, selected) {
     })
     
     #Legend Title
-    definitions <- read_csv("data/definitions.csv")
+    definitions <- read_csv("data/definitions.csv") |>
+      mutate(Units = replace_na(Units, ""))
     
     legend_title <- reactive({
       units <- definitions |> dplyr::filter(Variable == selected())

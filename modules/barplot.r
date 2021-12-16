@@ -7,6 +7,8 @@ plotsUI <- function(id) {
              colour = "#dd4b39",
              type = "markdown",
              content = "Columns"),
+    br(),
+    br(),
     plotlyOutput(NS(id, "boxplot"), height = "340px") %>%
       helper(icon = "question",
              colour = "#dd4b39",
