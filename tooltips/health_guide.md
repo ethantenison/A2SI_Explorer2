@@ -1,25 +1,24 @@
 # Health Variable Information
 
 
-### **Asthma Prevalence** 
+### **Asthma ED visit incidence** 
 
-Definition: Population based asthma-related hospital admissions incidence rate per 10,000 person years. <br>
-Units: Population based incidence rate <br>
-Year:2019 <br>
-Source:THCIC <br>
+Definition: Asthma emergency department visit incidence rate per 10,000 person years.This map was made from asthma ED visits among all  County residents from 2015-2019 combined  <br>
+Units: per 10,000 people per year <br>
+Year:2015-2019 (COMBINED) <br>
+Source:THCIC data set from Texas DSHS<br>
 
-### **Asthma Prevalence in Children** 
+### **Asthma ED visit incidence in Children** 
 
-Definition: Population based asthma-related hospital admissions incidence rate per 10,000 person years. (0-17 years) <br>
-Units: Population based incidence rate <br>
-Year:2019 <br>
-Source:THCIC <br>
+Definition: Asthma emergency department visit incidence rate per 10,000 person years.This map was made from asthma ED visits among all  County residents from 2015-2019 combined  <br>
+Units: per 10,000 people per year <br>
+Year:2015-2019 (COMBINED) <br>
+Source:THCIC data set from Texas DSHS<br>
 
-### **Asthma Prevalence** 
+### **Asthma ED visit incidence Prevalence** 
 
-Definition: Population based asthma-related hospital admissions incidence rate per 10,000 person years.  (18 +) <br>
-Units: Population based incidence rate <br>
-Year:2019 <br>
-Source:THCIC <br>
-
+Definition: Asthma emergency department visit incidence rate per 10,000 person years.This map was made from asthma ED visits among all  County residents from 2015-2019 combined  <br>
+Units: per 10,000 people per year <br>
+Year:2015-2019 (COMBINED) <br>
+Source:THCIC data set from Texas DSHS<br>
 

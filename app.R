@@ -18,8 +18,11 @@ library(googleway)
 library(shinyhelper)
 library(readxl)
 library(rhandsontable)
+library(profvis)
 
 # Data & Scripts ----
+
+
 
 options(scipen = 999)
 source("data/key.r")
@@ -141,6 +144,7 @@ ui = dashboardPage(
               column(
                 width = 12,
                 fluidRow(
+                  #profvis_ui("profiler"),
                   shinydashboard::box(
                     title = NULL,
                     width = 12,
@@ -187,8 +191,8 @@ ui = dashboardPage(
                              href = "http://www.austinindicators.org/",
                              img(
                                src = "images/AASI_logo_v1b-01.png",
-                               width = "80%",
-                               height = "100%"
+                               width = "70%",
+                               height = "90%"
                              )
                            )
                          )
@@ -203,8 +207,8 @@ ui = dashboardPage(
                              href = "https://dellmed.utexas.edu/units/center-for-health-environment-education-research",
                              img(
                                src = "images/cheer.png",
-                               width = "100%",
-                               height = "100%"
+                               width = "90%",
+                               height = "90%"
                              )
                            )
                          )
@@ -220,8 +224,8 @@ ui = dashboardPage(
                              target="_blank",
                              img(
                                src = "images/aos.png",
-                               width = "100%",
-                               height = "100%"
+                               width = "90%",
+                               height = "90%"
                              ))
                          )
                        )
@@ -236,8 +240,8 @@ ui = dashboardPage(
                              href = "https://www.capcog.org/",
                              img(
                                src = "images/capcog.png",
-                               width = "35%",
-                               height = "100%"
+                               width = "30%",
+                               height = "90%"
                              )
                            )
                          )
@@ -341,11 +345,11 @@ ui = dashboardPage(
                     dataUI(
                       "health",
                       choices = list(
-                        "Asthma Prevalence",
-                        "Asthma Prevalence in Children",
-                        "Asthma Prevalence in Adults"
+                        "Asthma ED incidence rate",
+                        "Asthma ED incidence rate in Children",
+                        "Asthma ED incidence rate in Adults"
                       ),
-                      selected = "Asthma Prevalence"
+                      selected = "Asthma ED incidence rate"
                     ),
                     mapUI("hel_map", height = "650")
                   ),
@@ -390,7 +394,7 @@ ui = dashboardPage(
                         "Percent of households without a car",
                         "Population Sensitivity"
                       ),
-                      selected = "Log Population Density"
+                      selected = "% low-income"
                     ),
                     mapUI("soc_map", height = "650")
                   ),
@@ -464,7 +468,7 @@ ui = dashboardPage(
               ),
               status = "success",
               footer = "Austin Area Sustainability Indicators",
-              "Ethan manages and evaluates the RGK Center's data initiatives at the University of Texas at Austin. He holds a masters degree in Global Policy Studies from the LBJ School of Public Affairs specializing in Data Science for Policy Analysis."
+              "Ethan is a data scientist and project manager at the RGK Center for Philanthropy and Community at the University of Texas at Austin. As part of this project, he built the application using the R programming language, and hopes it can be used to help help policy makers and community to make informed decisions. He holds a masters degree in Global Policy Studies from the LBJ School of Public Affairs specializing in Data Science for Policy Analysis."
             ),
             userBox(
               title = userDescription(
@@ -498,6 +502,8 @@ ui = dashboardPage(
 
 # Server ----
 server <- function(input, output, session) {
+  
+  #callModule(profvis_server, "profiler")
   ### AQ ----
   
   #Variable to visualize
@@ -561,3 +567,4 @@ server <- function(input, output, session) {
 
 # Run App ----
 shinyApp(ui = ui, server = server)
+

@@ -68,20 +68,6 @@ dataServer <- function(id, data, info) {
   moduleServer(id, function(input, output, session) {
     #' data = data to be filtered
     
-    #Variable Info Table
-    definitions <- read_csv("data/definitions.csv")
-    definitions2 <- read_excel("data/definitions.xlsx", 
-                              sheet = "aq")
-    
-    varinfo_reactive <- reactive({
-      def <- definitions |> filter(Variable == input$var) |>
-        dplyr::select(-c(Variable, "Additional Information", Units))
-      def <- t(def)
-      colnames(def) <- " "
-      def
-    })
-    
-    
     #Variable and Data Reactivity
     austin_map <- data
     austin_map <- as.data.frame(austin_map)
@@ -91,13 +77,13 @@ dataServer <- function(id, data, info) {
     austin_map$value <- as.numeric(austin_map$value)
     austin_map$value[austin_map$value == 0] <- NA
     
-    
     to_be <- function(df, test) {
       if (test != "Ozone - CAPCOG" & test != "PM2.5 - CAPCOG")
         dplyr::filter(df, county %in% input$geo)
       else
         df
     }
+    
     
     observeEvent(input$info, {
       if(info == "aq"){

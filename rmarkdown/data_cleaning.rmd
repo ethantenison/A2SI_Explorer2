@@ -341,7 +341,7 @@ test <- get_acs(
   geography = "metropolitan statistical area/micropolitan statistical area",
   year = 2017,
   variables = c(total_pop = "B01001_001"),
-  )
+)
 
 acs2 <- acs |>
   separate(NAME, c("bg", "tract", "county"), sep = ",") |>
@@ -365,9 +365,9 @@ acs2 <- acs |>
     "% White-Alone",
     "% Black-Alone",
     "% Asian-Alone",
-    "% Hispanic", 
+    "% Hispanic",
     "county"
-  ) 
+  )
 
 
 #enter your key census_api_key("Your key here")
@@ -396,7 +396,7 @@ demo <- demo |>
     "% White-Alone",
     "% Black-Alone",
     "% Asian-Alone",
-    "% Hispanic", 
+    "% Hispanic",
     "county"
   ) 
 
@@ -415,7 +415,15 @@ demo <- demo |>
 df3 <- df2 |>
   rename("GEOID" =  "id") |>
   bind_rows(demo) |>
-  left_join(acs2, by = "GEOID") 
+  left_join(acs2, by = "GEOID") |> 
+  mutate(
+          `> 50% White` = if_else(`% White-Alone` >= 0.5, 1, 0),
+          `> 50% Asian` = if_else(`% Asian-Alone` >= 0.5, 1, 0),
+          `> 50% Hispanic` = if_else(`% Hispanic` >= 0.5, 1, 0),
+          `> 50% Black` = if_else(`% Black-Alone` >= 0.5, 1, 0),
+          `> 50% Low Income` = if_else(`% low-income` >= 0.5, 1, 0)
+        )
+  
   
 
 #saveRDS(df3, "data/austin_composite.rds")
@@ -430,12 +438,14 @@ asthma <- read_rds("data/asthma_prevalence_2017_capcog.rds") |>
            adult_prev = adult_prev * 10000,
            total_prev = total_prev * 10000) |> 
     dplyr::select(GEOID, child_prev, adult_prev, total_prev, geometry) |>
-    rename("Asthma Prevalence" = total_prev,
-           "Asthma Prevalence in Children" = child_prev,
-           "Asthma Prevalence in Adults" = adult_prev) |>
-    pivot_longer(cols = `Asthma Prevalence in Children`:`Asthma Prevalence`,  
+    rename("Asthma ED incidence rate" = total_prev,
+           "Asthma ED incidence rate in Children" = child_prev,
+           "Asthma ED incidence rate in Adults" = adult_prev) |>
+    pivot_longer(cols = `Asthma ED incidence rate in Children`:`Asthma ED incidence rate`,  
                  names_to = "var",
                  values_to = "value") 
+
+asthma$value[asthma$value < 10] <- NA
 
 #acs variables 
 vars <- c("B02001_001", "B02001_002", "B02001_003", "B02001_005",
@@ -467,6 +477,13 @@ acs2 <- acs |>
     "% Hispanic" = hispanic / population,
     "% low-income" = (below_poverty + between_poverty) / population
   ) |>
+  mutate(
+    `> 50% White` = if_else(`% White-Alone` >= 0.5, 1, 0),
+    `> 50% Asian` = if_else(`% Asian-Alone` >= 0.5, 1, 0),
+    `> 50% Hispanic` = if_else(`% Hispanic` >= 0.5, 1, 0),
+    `> 50% Black` = if_else(`% Black-Alone` >= 0.5, 1, 0),
+    `> 50% Low Income` = if_else(`% low-income` >= 0.5, 1, 0)
+  ) |>
   dplyr::select(
     GEOID,
     population,
@@ -475,6 +492,11 @@ acs2 <- acs |>
     "% Asian-Alone",
     "% Hispanic",
     "% low-income",
+    "> 50% White",
+    "> 50% Asian",
+    "> 50% Hispanic",
+    "> 50% Black",
+    "> 50% Low Income",
     "county"
   ) 
 
@@ -494,7 +516,7 @@ df3 <- df3 |>
   bind_rows(asthma) |>
   distinct()
 
-saveRDS(df3, "data/austin_composite.rds")
+#saveRDS(df3, "data/austin_composite.rds")
 ```
 
 ```{r social_vulneraabilities}
@@ -542,24 +564,5 @@ saveRDS(soc, "data/soc.rds")
 ```
 
 
-```{r test_soc}
-
-test <- soc |>
-  filter(var == "% White-Alone") |>
-  distinct()
-
-test <- as.data.frame(test)
-    test <- st_as_sf(test)
-    test <-
-      st_transform(test, "+proj=longlat +ellps=WGS84 +datum=WGS84")
-
-
-leaflet() %>% 
-    addTiles() %>% 
-    addPolygons(data=test, weight = 2, fillColor = "yellow")
-
-
-
-```
 
 

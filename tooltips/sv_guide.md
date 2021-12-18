@@ -37,6 +37,15 @@ Units: Percent <br>
 Year:2019 <br>
 Source:ACS 5-year estimate <br>
 
+### **Population Sensitivity** 
+
+Definition: Relative measure of the sensitivity of a population to natural hazards and its ability to respond to and
+recover from the impacts of hazards. It is a multidimensional
+variable that includes demographics indicators such as income, education, occupation, household composition, home ownership,
+minority status, gender, age (elderly and children), housing tenure, and vehicle access <br>
+Year:2019 <br>
+Source:Texas Metro Observatory <br>
+
 ### **Log Population Density** 
 
 Definition: Log population per square mile <br>

@@ -2,38 +2,41 @@
 
 plotsUI <- function(id) {
   tagList(
-    plotlyOutput(NS(id, "barplot"), height = "325px")%>%
-      helper(icon = "question",
-             colour = "#dd4b39",
-             type = "markdown",
-             content = "Columns"),
-    br(),
-    br(),
-    plotlyOutput(NS(id, "boxplot"), height = "340px") %>%
-      helper(icon = "question",
-             colour = "#dd4b39",
-             type = "markdown",
-             content = "Columns")
-  )
+    fluidRow(
+      column(10),
+      column(1,
+             style = 'padding: 0px;',
+             circleButton(
+               NS(id, "btn2"),
+               icon = icon("question"),
+               status = "danger",
+               size = "sm"
+             ))
+    ),
+    fluidRow(
+    column(
+      width = 12,
+      plotlyOutput(NS(id, "barplot"), height = "325px")
+    )
+  ),
+  br(),
+  fluidRow(column(
+    width = 12,
+    plotlyOutput(NS(id, "boxplot"), height = "325px") 
+  )))
 }
 
 
 # Server ----
 plotsServer <- function(id, data) {
   moduleServer(id, function(input, output, session) {
+    
+    observe_helpers()
+    
     ### Barplot ----
     bardata <- reactive({
       bar <-
-        data() |>
-        mutate(
-          `> 50% White` = if_else(`% White-Alone` >= 0.5, 1, 0),
-          `> 50% Asian` = if_else(`% Asian-Alone` >= 0.5, 1, 0),
-          `> 50% Hispanic` = if_else(`% Hispanic` >= 0.5, 1, 0),
-          `> 50% Black` = if_else(`% Black-Alone` >= 0.5, 1, 0),
-          `> 50% Low Income` = if_else(`% low-income` >= 0.5, 1, 0)
-        )
-      
-      total_av <- mean(bar$value, na.rm = TRUE)
+        data() 
       
       whi <- bar |> filter(`> 50% White` == 1)
       whi_av <- mean(whi$value, na.rm = TRUE)
@@ -52,9 +55,8 @@ plotsServer <- function(id, data) {
       
       bar_to_plotly <-
         data.frame(
-          y = c(total_av, whi_av, asi_av, his_av, bla_av, lowincome_av),
+          y = c(whi_av, asi_av, his_av, bla_av, lowincome_av),
           x = c(
-            "Region Average",
             "> 50% White",
             "> 50% Asian",
             "> 50% Hispanic",
@@ -65,7 +67,6 @@ plotsServer <- function(id, data) {
         mutate(x = factor(
           x,
           levels = c(
-            "Region Average",
             "> 50% White",
             "> 50% Asian",
             "> 50% Hispanic",
@@ -107,7 +108,9 @@ plotsServer <- function(id, data) {
                font=list(size = 12),
                titlefont=list(size=25),
                margin = list(l=50, r=50, b=50, t=75, pad=4),
-               shapes = list(hline(mean(bardata()$y, na.rm = TRUE))))
+               shapes = list(hline(mean(bardata()$y, na.rm = TRUE)))) |> 
+        add_text(showlegend = FALSE, x = 3, y = mean(bardata()$y),
+                 text = c("Mean"))
       
     })
     
@@ -115,16 +118,8 @@ plotsServer <- function(id, data) {
     boxdata <- reactive({
       box <-
         data() |>
-        mutate(
-          `> 50% White` = if_else(`% White-Alone` >= 0.5, 1, 0),
-          `> 50% Asian` = if_else(`% Asian-Alone` >= 0.5, 1, 0),
-          `> 50% Hispanic` = if_else(`% Hispanic` >= 0.5, 1, 0),
-          `> 50% Black` = if_else(`% Black-Alone` >= 0.5, 1, 0),
-          `> 50% Low Income` = if_else(`% low-income` >= 0.5, 1, 0),
-          `Region Average` = 1
-        ) |>
         pivot_longer(
-          cols = `> 50% White`:`Region Average`,
+          cols = `> 50% White`:`> 50% Low Income`,
           names_to = "demo",
           values_to = "val2"
         ) |>
@@ -132,7 +127,6 @@ plotsServer <- function(id, data) {
         mutate(demo = factor(
           demo,
           levels = c(
-            "Region Average",
             "> 50% White",
             "> 50% Asian",
             "> 50% Hispanic",
@@ -162,6 +156,20 @@ plotsServer <- function(id, data) {
       
     })
     
+    
+    observeEvent(input$btn2, {
+        showModal(
+          modalDialog(
+            includeHTML(
+              knitr::knit2html("tooltips/plothelp.md", fragment.only = TRUE)
+            ),
+            #must knit
+            easyClose = TRUE,
+            size = "l",
+            fade = TRUE
+          )
+        )
+})
     
   })
 }

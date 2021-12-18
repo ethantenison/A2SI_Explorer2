@@ -75,17 +75,25 @@ mapServer <- function(id, data, selected) {
     pal <- reactive({
       if (selected() == "Flood Exposure") {
         colorNumeric(
-          palette = "RdBu",
-          n = 5,
+          palette = "Blues",
           reverse = FALSE,
-          domain = data()$value
+          domain = data()$value,
+          na.color = NA #"#D3D3D3"
         )
-      } else {
+      } else if (selected() == "Average Tree Cover"){
         colorNumeric(
-          palette = "RdBu",
-          n = 5,
-          reverse = TRUE,
-          domain = data()$value
+          palette = "Greens",
+          reverse = FALSE,
+          domain = data()$value,
+          na.color = NA #"#D3D3D3"
+        )
+      } 
+      else {
+        colorNumeric(
+          palette = "Reds",
+          reverse = FALSE,
+          domain = data()$value,
+          na.color = NA #"#D3D3D3"
         )
       }
     })
