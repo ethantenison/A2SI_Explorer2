@@ -6,7 +6,7 @@ This plot was created to compare how different groups in the Austin area are aff
 
 ### Box Plot 
  
-The box plot takes the same data and visualizes the variation between groups. If you would like to read how to interpret box plots you can click [here](https://www.wellbeingatschool.org.nz/information-sheet/understanding-and-interpreting-box-plots).
+The box plot takes the same data and visualizes the variation between groups. This is important to note because the variation among different racial groups can be drastically different. If you would like to read how to interpret box plots you can click [here](https://www.wellbeingatschool.org.nz/information-sheet/understanding-and-interpreting-box-plots).
 
 
 

@@ -269,7 +269,7 @@ ui = dashboardPage(
                         "Ozone - CAPCOG",
                         "PM2.5",
                         "PM2.5 - CAPCOG",
-                        "Percentile for PM2.5 level in air"
+                        "Percentile for PM2.5"
                       ),
                       selected = "PM2.5"
                     ),
@@ -345,11 +345,11 @@ ui = dashboardPage(
                     dataUI(
                       "health",
                       choices = list(
-                        "Asthma ED incidence rate",
-                        "Asthma ED incidence rate in Children",
-                        "Asthma ED incidence rate in Adults"
+                        "Asthma ED incidence",
+                        "Asthma ED incidence Children",
+                        "Asthma ED incidence Adults"
                       ),
-                      selected = "Asthma ED incidence rate"
+                      selected = "Asthma ED incidence"
                     ),
                     mapUI("hel_map", height = "650")
                   ),
@@ -391,7 +391,7 @@ ui = dashboardPage(
                         "% under age 5",
                         "% over age 64",
                         "Average Vehicles per person",
-                        "Percent of households without a car",
+                        "Households without a car",
                         "Population Sensitivity"
                       ),
                       selected = "% low-income"

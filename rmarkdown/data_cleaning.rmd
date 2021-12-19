@@ -116,9 +116,9 @@ car_household$`Estimate!!Total:!!Owner occupied:!!No vehicle available` <- as.nu
 car_household$`Estimate!!Total:!!Renter occupied:!!No vehicle available` <- as.numeric(car_household$`Estimate!!Total:!!Renter occupied:!!No vehicle available`)
 car_household$`Estimate!!Total:` <- as.numeric(car_household$`Estimate!!Total:`)
 car_household$`No Car` <- car_household$`Estimate!!Total:!!Owner occupied:!!No vehicle available` + car_household$`Estimate!!Total:!!Renter occupied:!!No vehicle available`
-car_household$`Percent of households without a car` <- car_household$`No Car`/car_household$`Estimate!!Total:`
+car_household$`Households without a car` <- car_household$`No Car`/car_household$`Estimate!!Total:`
 
-car_household <- car_household |> dplyr::select(id,`Percent of households without a car` )
+car_household <- car_household |> dplyr::select(id,`Households without a car` )
 
 ```
 
@@ -239,7 +239,7 @@ df <-
         "% under age 5",
         "% over age 64",
         "Aggregate Vehicles",
-        "Percent of households without a car",
+        "Households without a car",
         # "CO",
         # "NO2",
         # "SO2",
@@ -252,7 +252,8 @@ df <-
         "area",
         geometry
         
-    )
+    ) |> 
+  rename("Percentile for PM2.5" = "Percentile for PM2.5 level in air")
 
 
 df$Population <- as.numeric(df$Population)
@@ -284,7 +285,7 @@ df <-
     dplyr::select(
         id,
         "Average Vehicles per person",
-        "Percent of households without a car",
+        "Households without a car",
         "Population Density",
         "Log Population Density",#YOu need to add variables here if they are at the end
         everything()
@@ -303,7 +304,7 @@ df$value <- as.numeric(df$value)
 df$value[is.na(df$value)] <- 0
 
 df$var[df$var == "Climate Exposure and Climate Vulnerability"] <-
-    "Multihazard Exposure and Population Sensitivity"
+    "Multihazard and Population Sensitivity"
 
 df$var[df$var == "Social Vulnerability Score"] <-
     "Population Sensitivity"
@@ -422,7 +423,8 @@ df3 <- df2 |>
           `> 50% Hispanic` = if_else(`% Hispanic` >= 0.5, 1, 0),
           `> 50% Black` = if_else(`% Black-Alone` >= 0.5, 1, 0),
           `> 50% Low Income` = if_else(`% low-income` >= 0.5, 1, 0)
-        )
+        ) 
+
   
   
 
@@ -438,10 +440,10 @@ asthma <- read_rds("data/asthma_prevalence_2017_capcog.rds") |>
            adult_prev = adult_prev * 10000,
            total_prev = total_prev * 10000) |> 
     dplyr::select(GEOID, child_prev, adult_prev, total_prev, geometry) |>
-    rename("Asthma ED incidence rate" = total_prev,
-           "Asthma ED incidence rate in Children" = child_prev,
-           "Asthma ED incidence rate in Adults" = adult_prev) |>
-    pivot_longer(cols = `Asthma ED incidence rate in Children`:`Asthma ED incidence rate`,  
+    rename("Asthma ED incidence" = total_prev,
+           "Asthma ED incidence Children" = child_prev,
+           "Asthma ED incidence Adults" = adult_prev) |>
+    pivot_longer(cols = `Asthma ED incidence Children`:`Asthma ED incidence`,  
                  names_to = "var",
                  values_to = "value") 
 
@@ -509,12 +511,13 @@ asthma <- st_as_sf(asthma) |>
   st_transform("+proj=longlat +ellps=WGS84 +datum=WGS84") |>
   distinct()
 
+
 saveRDS(asthma, "data/asthma_for_app.rds")
 
 
 df3 <- df3 |>
   bind_rows(asthma) |>
-  distinct()
+  distinct() 
 
 #saveRDS(df3, "data/austin_composite.rds")
 ```
@@ -525,7 +528,7 @@ aq <- df3 |>
   filter(var %in% c("Ozone - CAPCOG",
                         "PM2.5",
                         "PM2.5 - CAPCOG",
-                        "Percentile for PM2.5 level in air"))
+                        "Percentile for PM2.5")) 
 
 saveRDS(aq, "data/aq.rds")
 
@@ -534,7 +537,7 @@ env <- df3 |>
                         "Heat Exposure",
                         "Flood Exposure",
                         "Multihazard Exposure",
-                        "Multihazard Exposure and Population Sensitivity",
+                        "Multihazard and Population Sensitivity",
                         "Average Impervious Cover",
                         "Average Tree Cover"))
 
@@ -552,7 +555,7 @@ soc <- df3 |>
       "% under age 5",
       "% over age 64",
       "Average Vehicles per person",
-      "Percent of households without a car",
+      "Households without a car",
       "Population Sensitivity"
     )
   )

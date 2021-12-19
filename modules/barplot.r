@@ -23,7 +23,18 @@ plotsUI <- function(id) {
   fluidRow(column(
     width = 12,
     plotlyOutput(NS(id, "boxplot"), height = "325px") 
-  )))
+  )),
+  fluidRow(column(
+    width = 12,
+    br(),
+    HTML(
+      '<div style="text-align: right">
+    *Missing groups signifies missing information
+    </div>'
+    )
+  ))
+  
+  )
 }
 
 
@@ -57,21 +68,21 @@ plotsServer <- function(id, data) {
         data.frame(
           y = c(whi_av, asi_av, his_av, bla_av, lowincome_av),
           x = c(
-            "> 50% White",
-            "> 50% Asian",
-            "> 50% Hispanic",
-            "> 50% Black",
-            "> 50% Low Income"
+            "White",
+            "Asian",
+            "Hispanic",
+            "Black",
+            "Low Income"
           )
         ) |>
         mutate(x = factor(
           x,
           levels = c(
-            "> 50% White",
-            "> 50% Asian",
-            "> 50% Hispanic",
-            "> 50% Black",
-            "> 50% Low Income"
+            "White", 
+            "Asian",
+            "Hispanic",
+            "Black",
+            "Low Income"
           )
         ))
       
@@ -93,6 +104,12 @@ plotsServer <- function(id, data) {
     }
     
     output$barplot <- renderPlotly({
+      
+      geo <- ifelse(unique(data()$var) %in% c("Asthma ED incidence",
+                                            "Asthma ED incidence Children",
+                                            "Asthma ED incidence Adults"),
+                    "Tract", "Block Group")
+      
       bar <- plot_ly(
         x = bardata()$x,
         y = bardata()$y,
@@ -103,14 +120,14 @@ plotsServer <- function(id, data) {
         config(displayModeBar = FALSE) |>
         layout(
                yaxis = list(title = paste0(unique(data()$var)," Average")),
-               xaxis = list(title = "")) |>
+               xaxis = list(title = paste0("Census ",geo, " Majority"))) |>
         layout(title = unique(data()$var),
                font=list(size = 12),
                titlefont=list(size=25),
                margin = list(l=50, r=50, b=50, t=75, pad=4),
                shapes = list(hline(mean(bardata()$y, na.rm = TRUE)))) |> 
-        add_text(showlegend = FALSE, x = 3, y = mean(bardata()$y),
-                 text = c("Mean"))
+        add_annotations(showlegend = FALSE, x = 2.7, y = mean(bardata()$y, na.rm = TRUE),
+                 text = c("Region Average"), font = list(color = '#264E86'))
       
     })
     
@@ -118,8 +135,13 @@ plotsServer <- function(id, data) {
     boxdata <- reactive({
       box <-
         data() |>
+        rename("White" = "> 50% White",
+               "Asian" = "> 50% Asian",
+               "Hispanic" = "> 50% Hispanic",
+               "Black" = "> 50% Black",
+               "Low Income" = "> 50% Low Income") |> 
         pivot_longer(
-          cols = `> 50% White`:`> 50% Low Income`,
+          cols = `White`:`Low Income`,
           names_to = "demo",
           values_to = "val2"
         ) |>
@@ -127,11 +149,11 @@ plotsServer <- function(id, data) {
         mutate(demo = factor(
           demo,
           levels = c(
-            "> 50% White",
-            "> 50% Asian",
-            "> 50% Hispanic",
-            "> 50% Black",
-            "> 50% Low Income"
+            "White",
+            "Asian",
+            "Hispanic",
+            "Black",
+            "Low Income"
           )
         ))
       
@@ -142,6 +164,12 @@ plotsServer <- function(id, data) {
     
     #Plotly Boxplot
     output$boxplot <- renderPlotly({
+      
+      geo <- ifelse(unique(data()$var) %in% c("Asthma ED incidence",
+                                              "Asthma ED incidence Children",
+                                              "Asthma ED incidence Adults"),
+                    "Tract", "Block Group")
+      
       plot_ly(
         x = boxdata()$demo,
         y = boxdata()$value,
@@ -151,8 +179,11 @@ plotsServer <- function(id, data) {
         config(displayModeBar = FALSE) |>
         layout(showlegend = FALSE,
                yaxis = list(title = unique(data()$var)),
-               xaxis = list(title = ""),
-               shapes = list(hline(mean(boxdata()$value, na.rm = TRUE))))
+               xaxis = list(title = paste0("Census ",geo, " Majority")),
+              shapes = list(hline(mean(boxdata()$value, na.rm = TRUE)))
+               ) |> 
+        add_annotations(showlegend = FALSE, x = 2.7, y = mean(boxdata()$value, na.rm = TRUE),
+                        text = c("Region Average"), font = list(color = '#264E86'))
       
     })
     
