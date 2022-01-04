@@ -48,6 +48,7 @@ mapServer <- function(id, data, selected) {
                            format(data()$value, digits = 1)),
           
           popup =  ~ paste0(
+            data()$GEOID,
             "<h5/><b>",
             data()$var,
             ": ",
@@ -55,6 +56,18 @@ mapServer <- function(id, data, selected) {
             "<h6/>",
             "Total population: ",
             format(data()$`population`, big.mark = ","),
+            "<h6/>",
+            "% White: ",
+            format(data()$`% White-Alone`, digits = 1),
+            "<h6/>",
+            "% Black: ",
+            format(data()$`% Black-Alone`, digits = 1),
+            "<h6/>",
+            "% Asian: ",
+            format(data()$`% Asian-Alone`, digits = 1),
+            "<h6/>",
+            "% Hispanic: ",
+            format(data()$`% Hispanic`, digits = 1),
             "<h6/>",
             "Low Income (%): ",
             format(data()$`% low-income`, digits = 1)
@@ -69,6 +82,91 @@ mapServer <- function(id, data, selected) {
         ) 
 
     })
+    
+    palwithoutna <- reactive({
+      colorNumeric(
+        palette = "Blues",
+        reverse = FALSE,
+        domain = data()$value,
+        na.color=rgb(0,0,0,0)
+      )
+    })
+    
+    #Map attributes to display
+    observe({
+      if (selected() == "Flood Exposure"){
+        
+
+      flood <- readRDS("./data/flood_polygon.rds")
+      
+      proxy <- leafletProxy("map", data = data()) |>
+        clearShapes() |>
+        clearControls() |>
+        addPolygons(
+          color = "#444444",
+          weight = 1,
+          smoothFactor = 0.5,
+          opacity = 0,
+          fillOpacity = 0.9,
+          fillColor = ~ pal()(data()$value),
+          highlightOptions = highlightOptions(
+            color = "white",
+            weight = 2,
+            bringToFront = TRUE
+          ),
+          label = ~ paste0(data()$var,
+                           ": ",
+                           format(data()$value, digits = 1)),
+          
+          popup =  ~ paste0(
+            "<h5/><b>",
+            data()$var,
+            ": ",
+            format(data()$value, digits = 1),
+            "<h6/>",
+            "Total population: ",
+            format(data()$`population`, big.mark = ","),
+            "<h6/>",
+            "% White: ",
+            format(data()$`% White-Alone`, digits = 1),
+            "<h6/>",
+            "% Black: ",
+            format(data()$`% Black-Alone`, digits = 1),
+            "<h6/>",
+            "% Asian: ",
+            format(data()$`% Asian-Alone`, digits = 1),
+            "<h6/>",
+            "% Hispanic: ",
+            format(data()$`% Hispanic`, digits = 1),
+            "<h6/>",
+            "Low Income (%): ",
+            format(data()$`% low-income`, digits = 1
+            )
+          )
+        ) |>
+        addPolygons(
+          data = flood,
+          color = "#444444",
+          weight = 1,
+          smoothFactor = 0.5,
+          opacity = 0,
+          fillOpacity = 0.2,
+          fillColor = "#000000") |> 
+        addLegend(
+          "bottomright",
+          pal = palwithoutna(),
+          values = ~ data()$value,
+          title = legend_title(),
+          na.label = ""
+        ) 
+      
+      proxy
+      
+      }  
+      
+      
+    })
+    
 #    30.277729034791303, -97.75242943917551
     
     #Color Palette for Map
@@ -78,7 +176,7 @@ mapServer <- function(id, data, selected) {
           palette = "Blues",
           reverse = FALSE,
           domain = data()$value,
-          na.color = NA #"#D3D3D3"
+          na.color=rgb(0,0,0,0)
         )
       } else if (selected() == "Average Tree Cover"){
         colorNumeric(
@@ -97,6 +195,7 @@ mapServer <- function(id, data, selected) {
         )
       }
     })
+    
     
     #Legend Title
     definitions <- read_csv("data/definitions.csv") |>

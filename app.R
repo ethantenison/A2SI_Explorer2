@@ -308,7 +308,7 @@ ui = dashboardPage(
                         "Heat Exposure",
                         "Flood Exposure",
                         "Multihazard Exposure",
-                        "Multihazard Exposure and Population Sensitivity",
+                        "Multihazard and Population Sensitivity",
                         "Average Impervious Cover",
                         "Average Tree Cover"
                       ),

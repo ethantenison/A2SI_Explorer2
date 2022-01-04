@@ -16,13 +16,13 @@ plotsUI <- function(id) {
     fluidRow(
     column(
       width = 12,
-      plotlyOutput(NS(id, "barplot"), height = "325px")
+      plotlyOutput(NS(id, "barplot"), height = "300px")
     )
   ),
   br(),
   fluidRow(column(
     width = 12,
-    plotlyOutput(NS(id, "boxplot"), height = "325px") 
+    plotlyOutput(NS(id, "boxplot"), height = "300px") 
   )),
   fluidRow(column(
     width = 12,
@@ -46,47 +46,71 @@ plotsServer <- function(id, data) {
     
     ### Barplot ----
     bardata <- reactive({
-      bar <-
-        data() 
-      
-      whi <- bar |> filter(`> 50% White` == 1)
-      whi_av <- mean(whi$value, na.rm = TRUE)
-      
-      asi <- bar |> filter(`> 50% Asian` == 1)
-      asi_av <- mean(asi$value, na.rm = TRUE)
-      
-      his <- bar |> filter(`> 50% Hispanic` == 1)
-      his_av <- mean(his$value, na.rm = TRUE)
-      
-      bla <- bar |> filter(`> 50% Black` == 1)
-      bla_av <- mean(bla$value, na.rm = TRUE)
-      
-      lowincome <- bar |> filter(`> 50% Low Income` == 1)
-      lowincome_av <- mean(lowincome$value, na.rm = TRUE)
-      
-      bar_to_plotly <-
-        data.frame(
-          y = c(whi_av, asi_av, his_av, bla_av, lowincome_av),
-          x = c(
-            "White",
-            "Asian",
-            "Hispanic",
-            "Black",
-            "Low Income"
-          )
-        ) |>
-        mutate(x = factor(
-          x,
-          levels = c(
-            "White", 
-            "Asian",
-            "Hispanic",
-            "Black",
-            "Low Income"
-          )
-        ))
-      
-      return(bar_to_plotly)
+      if (unique(data()$var == "Asthma ED incidence")) {
+        
+        bar <-
+          data()
+        
+        whi_av <- mean(bar$white_prev, na.rm = TRUE)
+        asi_av <- mean(bar$asian_prev, na.rm = TRUE)
+        his_av <- mean(bar$hispanic_prev, na.rm = TRUE)
+        bla_av <- mean(bar$black_prev, na.rm = TRUE)
+        total_av <- mean(bar$total_prev, na.rm = TRUE)
+        
+        bar_to_plotly <-
+          data.frame(
+            y = c(whi_av, asi_av, his_av, bla_av),
+            x = c("White",
+                  "Asian",
+                  "Hispanic",
+                  "Black")
+          ) |>
+          mutate(x = factor(x,
+                            levels = c("White",
+                                       "Asian",
+                                       "Hispanic",
+                                       "Black")))
+        
+        return(bar_to_plotly)
+        
+      } else {
+        bar <-
+          data()
+        
+        whi <- bar |> filter(`> 50% White` == 1)
+        whi_av <- mean(bar$white_prev, na.rm = TRUE)
+        
+        asi <- bar |> filter(`> 50% Asian` == 1)
+        asi_av <- mean(asi$value, na.rm = TRUE)
+        
+        his <- bar |> filter(`> 50% Hispanic` == 1)
+        his_av <- mean(his$value, na.rm = TRUE)
+        
+        bla <- bar |> filter(`> 50% Black` == 1)
+        bla_av <- mean(bla$value, na.rm = TRUE)
+        
+        lowincome <- bar |> filter(`> 50% Low Income` == 1)
+        lowincome_av <- mean(lowincome$value, na.rm = TRUE)
+        
+        bar_to_plotly <-
+          data.frame(
+            y = c(whi_av, asi_av, his_av, bla_av, lowincome_av),
+            x = c("White",
+                  "Asian",
+                  "Hispanic",
+                  "Black",
+                  "Low Income")
+          ) |>
+          mutate(x = factor(x,
+                            levels = c("White",
+                                       "Asian",
+                                       "Hispanic",
+                                       "Black",
+                                       "Low Income")))
+        
+        return(bar_to_plotly)
+        
+      }
     })
     
     
@@ -106,9 +130,35 @@ plotsServer <- function(id, data) {
     output$barplot <- renderPlotly({
       
       geo <- ifelse(unique(data()$var) %in% c("Asthma ED incidence",
-                                            "Asthma ED incidence Children",
-                                            "Asthma ED incidence Adults"),
+                                              "Asthma ED incidence Children",
+                                              "Asthma ED incidence Adults"),
                     "Tract", "Block Group")
+      
+      if (unique(data()$var == "Asthma ED incidence")) {
+        
+        bar <- plot_ly(
+          x = bardata()$x,
+          y = bardata()$y,
+          color = I("#00a65a"),
+          type = 'bar'
+          
+        ) |>
+          config(displayModeBar = FALSE) |>
+          layout(
+            yaxis = list(title = paste0(unique(data()$var)," Average")),
+            xaxis = list(title = "Major Demographic Groups")
+              #list(title = paste0("Census ",geo, " Majority"))
+            ) |>
+          layout(title = unique(data()$var),
+                 font=list(size = 12),
+                 titlefont=list(size=25),
+                 margin = list(l=50, r=50, b=50, t=75, pad=4),
+                 shapes = list(hline(mean(bardata()$y, na.rm = TRUE)))) |> 
+          add_annotations(showlegend = FALSE, x = 2.7, y = mean(bardata()$y, na.rm = TRUE),
+                          text = c("Region Average"), font = list(color = '#264E86'))
+        
+        
+      } else {
       
       bar <- plot_ly(
         x = bardata()$x,
@@ -119,20 +169,56 @@ plotsServer <- function(id, data) {
       ) |>
         config(displayModeBar = FALSE) |>
         layout(
-               yaxis = list(title = paste0(unique(data()$var)," Average")),
-               xaxis = list(title = paste0("Census ",geo, " Majority"))) |>
+          yaxis = list(title = paste0(unique(data()$var)," Average")),
+          xaxis = list(title = paste0("Census ",geo, " Majority"))) |>
         layout(title = unique(data()$var),
                font=list(size = 12),
                titlefont=list(size=25),
                margin = list(l=50, r=50, b=50, t=75, pad=4),
                shapes = list(hline(mean(bardata()$y, na.rm = TRUE)))) |> 
         add_annotations(showlegend = FALSE, x = 2.7, y = mean(bardata()$y, na.rm = TRUE),
-                 text = c("Region Average"), font = list(color = '#264E86'))
+                        text = c("Region Average"), font = list(color = '#264E86'))
+      }
       
     })
     
     ### Boxplot ----
     boxdata <- reactive({
+      
+      if (unique(data()$var == "Asthma ED incidence")) {
+        
+        box <-
+          data() |>
+          rename("White" = "white_prev",
+                 "Asian" = "asian_prev",
+                 "Hispanic" = "hispanic_prev",
+                 "Black" = "black_prev") |> 
+          pivot_longer(
+            cols = `Asian`:`Hispanic`,
+            names_to = "demo",
+            values_to = "val2"
+          ) |>
+          filter(val2 != 0) |>
+          mutate(demo = factor(
+            demo,
+            levels = c(
+              "White",
+              "Asian",
+              "Hispanic",
+              "Black"
+            )
+          ),
+          Asian = replace_na(0))
+        
+        
+        
+        to_plotly <- as.data.frame(box)
+        
+        return(to_plotly)
+        
+        
+      } else {
+      
       box <-
         data() |>
         rename("White" = "> 50% White",
@@ -160,6 +246,8 @@ plotsServer <- function(id, data) {
       to_plotly <- as.data.frame(box)
       
       return(to_plotly)
+      
+      }
     })
     
     #Plotly Boxplot
@@ -169,6 +257,30 @@ plotsServer <- function(id, data) {
                                               "Asthma ED incidence Children",
                                               "Asthma ED incidence Adults"),
                     "Tract", "Block Group")
+      
+      if (unique(data()$var == "Asthma ED incidence")) {
+        
+        plot_ly(
+          x = boxdata()$demo,
+          y = boxdata()$val2,
+          color = I("#00a65a"),
+          type = "box"
+        ) |>
+          config(displayModeBar = FALSE) |>
+          layout(showlegend = FALSE,
+                 yaxis = list(title = unique(data()$var)),
+                 xaxis = list(title = "Major Demographic Groups")
+                 #xaxis = list(title = paste0("Census ",geo, " Majority")) ,
+                 #shapes = list(hline(mean(boxdata()$value, na.rm = TRUE))
+                               )
+          # |> 
+          #  add_annotations(showlegend = FALSE, x = 2.7, y = mean(boxdata()$val2, na.rm = TRUE),
+          #                  text = c("Region Average"), font = list(color = '#264E86'))
+        
+        
+        
+      } else {
+      
       
       plot_ly(
         x = boxdata()$demo,
@@ -184,6 +296,8 @@ plotsServer <- function(id, data) {
                ) |> 
         add_annotations(showlegend = FALSE, x = 2.7, y = mean(boxdata()$value, na.rm = TRUE),
                         text = c("Region Average"), font = list(color = '#264E86'))
+        
+      }
       
     })
     
