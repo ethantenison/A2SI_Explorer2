@@ -336,12 +336,12 @@ counties <- c("Travis", "Bastrop","Blanco", "Burnet", "Caldwell",
               "Fayette", "Hays", "Lee", "Llano", "Williamson")
 
 #enter your key census_api_key("Your key here")
-acs <-get_acs(state="TX", county = counties, geography="block group",year = 2017,
+acs <-get_acs(state="TX", county = counties, geography="block group",year = 2019,
               variables=vars, geometry= F) 
 
 test <- get_acs(
   geography = "metropolitan statistical area/micropolitan statistical area",
-  year = 2017,
+  year = 2019,
   variables = c(total_pop = "B01001_001"),
 )
 
@@ -373,7 +373,7 @@ acs2 <- acs |>
 
 
 #enter your key census_api_key("Your key here")
-demo <-get_acs(state="TX", county = counties, geography="block group",year = 2017,
+demo <-get_acs(state="TX", county = counties, geography="block group",year = 2019,
               variables=vars, geometry= F) 
 
 demo <- demo |>
@@ -490,10 +490,10 @@ counties <- c("Travis", "Bastrop","Blanco", "Burnet", "Caldwell",
               "Fayette", "Hays", "Lee", "Llano", "Williamson")
 
 #enter your key census_api_key("Your key here")
-acs <-get_acs(state="TX", county = counties, geography="tract",year = 2017,
+acs <-get_acs(state="TX", county = counties, geography="tract",year = 2019,
               variables=vars, geometry= F) 
 
-geo <- get_acs(state="TX", county = counties, geography="tract",year = 2017,
+geo <- get_acs(state="TX", county = counties, geography="tract",year = 2019,
               variables=c("B02001_003"), geometry= T) 
 
 geo <- geo |> 
@@ -541,7 +541,6 @@ acs2 <- acs |>
     "county"
   ) 
 
-B03002_006
 
 asthma <- asthma |> 
     left_join(acs2, by = "GEOID") |> 
