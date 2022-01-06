@@ -31,6 +31,7 @@ set_key(key = key)
 #Modules
 source("modules/datamod_v2.r")
 source("modules/barplot.r")
+source("modules/barplot_asthma.r")
 source("modules/mapmod.r")
 
 aq <- readRDS("./data/aq.rds")
@@ -353,7 +354,7 @@ ui = dashboardPage(
                     width = 4,
                     solidHeader = FALSE,
                     status = "success",
-                    plotsUI("hel_bar")
+                    plotsUI2("hel_bar")
                   )
                   
                 ))
@@ -529,7 +530,7 @@ server <- function(input, output, session) {
   
   
   mapServer("hel_map", data = variable_hel, selected = selected_hel)
-  plotsServer("hel_bar", data = variable_hel)
+  plotsServer2("hel_bar", data = variable_hel)
   ### Social ----
   soc <- dataServer("social", data = soc, info = "soc")
   variable_soc <- soc$df

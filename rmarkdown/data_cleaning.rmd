@@ -443,6 +443,11 @@ library(readr)
 asthma <-
   read_csv("data/asthma_prevalence_2016_2019_capcog_tract.csv")
 
+asthma$asian_prev[asthma$Asian < 500 ] <- NA
+asthma$black_prev[asthma$Black < 500 ] <- NA
+asthma$white_prev[asthma$White < 500 ] <- NA
+asthma$hispanic_prev[asthma$Hispanic < 500 ] <- NA
+
 
 
 ```

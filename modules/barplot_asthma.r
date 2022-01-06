@@ -1,6 +1,6 @@
 # UI ----
 
-plotsUI <- function(id) {
+plotsUI2 <- function(id) {
   tagList(
     fluidRow(column(10),
              column(
@@ -26,7 +26,7 @@ plotsUI <- function(id) {
       width = 12,
       br(),
       div(
-      img(src = 'images/region_avg.png', width = '34%', heigh = '34%'),
+      img(src = 'images/national_avg.png', width = '34%', heigh = '34%'),
        style="text-align: right;"
       ),
       HTML(
@@ -41,7 +41,7 @@ plotsUI <- function(id) {
 
 
 # Server ----
-plotsServer <- function(id, data) {
+plotsServer2 <- function(id, data) {
   moduleServer(id, function(input, output, session) {
     observe_helpers()
     
@@ -162,7 +162,7 @@ plotsServer <- function(id, data) {
             #list(title = paste0("Census ",geo, " Majority"))
           ) |>
           layout(
-            title = unique(data()$var),
+            title = "Asthma ED Incidence",
             font = list(size = 12),
             titlefont = list(size = 25),
             margin = list(
