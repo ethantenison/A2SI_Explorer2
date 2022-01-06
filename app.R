@@ -279,8 +279,6 @@ ui = dashboardPage(
                     width = 4,
                     solidHeader = FALSE,
                     status = "success",
-                    br(),
-                    br(),
                     plotsUI("aq_bar")
                   )
                   
@@ -320,8 +318,6 @@ ui = dashboardPage(
                     width = 4,
                     solidHeader = FALSE,
                     status = "success",
-                    br(),
-                    br(),
                     plotsUI("env_bar")
                   )
                   
