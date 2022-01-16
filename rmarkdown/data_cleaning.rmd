@@ -244,7 +244,7 @@ df <-
         # "CO",
         # "NO2",
         # "SO2",
-        # "O3",
+        "O3",
         "PM10",
         "PM2.5",
         "Average Impervious Cover",
@@ -292,7 +292,7 @@ df <-
         everything()
     ) |>
     mutate(across(everything(), as.character)) |>
-    pivot_longer(cols = 2:23, #This has to be adjusted when you add or remove variables 
+    pivot_longer(cols = 2:24, #This has to be adjusted when you add or remove variables 
                  names_to = "var",
                  values_to = "value") |>
     dplyr::select(id, var, value) |>
@@ -316,7 +316,7 @@ df$value[df$var == "PM10" & df$value == 0] <- 22
 # df$value[df$var == "CO" & df$value == 0] <- 0.2
 # df$value[df$var == "NO2" & df$value == 0] <- 3
 # df$value[df$var == "SO2" & df$value == 0] <- 0.9
-# df$value[df$var == "O3" & df$value == 0] <- 43
+ df$value[df$var == "O3" & df$value == 0] <- 43
 
 df2 <- bind_rows(df, cap_ozone, cap_pm2.5) |>
   dplyr::select(id, var, value, "% low-income", geometry)
@@ -443,10 +443,10 @@ library(readr)
 asthma <-
   read_csv("data/asthma_prevalence_2016_2019_capcog_tract.csv")
 
-asthma$asian_prev[asthma$Asian < 500 ] <- NA
-asthma$black_prev[asthma$Black < 500 ] <- NA
-asthma$white_prev[asthma$White < 500 ] <- NA
-asthma$hispanic_prev[asthma$Hispanic < 500 ] <- NA
+ asthma$asian_prev[asthma$Asian < 500 ] <- NA
+ asthma$black_prev[asthma$Black < 500 ] <- NA
+ asthma$white_prev[asthma$White < 500 ] <- NA
+ asthma$hispanic_prev[asthma$Hispanic < 500 ] <- NA
 
 
 
@@ -589,7 +589,8 @@ df3 <- df3 |>
 ```{r social_vulneraabilities}
 
 aq <- df3 |>
-  filter(var %in% c("Ozone - CAPCOG",
+  filter(var %in% c("O3",
+                    "Ozone - CAPCOG",
                     "PM2.5",
                     "PM2.5 - CAPCOG",
                     "Percentile for PM2.5")) |>

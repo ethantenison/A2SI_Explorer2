@@ -267,6 +267,7 @@ ui = dashboardPage(
                       #Selector UI
                       "air",
                       choices = list(
+                        "O3",
                         "Ozone - CAPCOG",
                         "PM2.5",
                         "PM2.5 - CAPCOG",
