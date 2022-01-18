@@ -21,9 +21,6 @@ library(rhandsontable)
 library(profvis)
 
 # Data & Scripts ----
-
-
-
 options(scipen = 999)
 source("data/key.r")
 set_key(key = key)
@@ -471,14 +468,15 @@ ui = dashboardPage(
             userBox(
               title = userDescription(
                 title = "Patrick Bixler",
-                subtitle = "Assistant Professor",
+                subtitle = "Assistant Professor at the University of Texas at Austin",
                 image = "images/thumbnail_Bixler Headshot.jpg",
                 type = 2
               ),
               status = "success",
               footer = "Austin Area Sustainability Indicators",
               "Patrick Bixler is an Assistant Professor at the LBJ School of Public Affairs, core faculty at the RGK Center for Philanthropy and Community Service, and has a joint appointment in the Community and Regional Planning program at the University of Texas. He directs the Austin Area Sustainability Indicators project and co-leads a Planet Texas 2050 Flagship initiative."
-            ),
+            )),
+          fluidRow(
             userBox(
               title = userDescription(
                 title = "Christiane Heggelund",
@@ -489,14 +487,36 @@ ui = dashboardPage(
               status = "success",
               footer = "Capital Area Council of Governments",
               "Christiane Heggelund is the Regional Planning and Services Program Coordinator for the Capital Area Council of Governments (CAPCOG). In CAPCOG’s Air Quality Program, Christiane works on air quality monitoring, air quality education and outreach, and air quality analyses. She is a New Orleans, Louisiana, native, who has lived in Texas for 12 years. She holds a Bachelor of Science degree in Geology from Tulane University."
+            ),
+            userBox(
+              title = userDescription(
+                title = "Rebecca A. Zarate",
+                subtitle = "PhD student in Quantitative Methods UT Austin",
+                image = "images/rebecca_zarate.jpg",
+                type = 2
+              ),
+              status = "success",
+              footer = "Center for Health and Environment, Education, and Research",
+              "Rebecca A. Zarate (aka RAZ) is a PhD student in Quantitative Methods at the University of Texas at Austin pursuing studies in spatial statistics. She works with Dr. Elizabeth Matsui in the Department of Population Health at Dell Medical School focusing on asthma incidence rates and factors that may contribute to these rates in the state of Texas. She also teaches a Statistical Literacy course to undergraduate students at UT-Austin. "
             )
-          )
-          
+          ),
+          fluidRow(
+            userBox(
+              title = userDescription(
+                title = "Elizabeth Matsui",
+                subtitle = "Professor of population health and pediatrics",
+                image = "images/elizabeth.jpg",
+                type = 2
+              ),
+              status = "success",
+              footer = "Center for Health and Environment, Education, and Research",
+              "Elizabeth Matsui, M.D., M.H.S, is the associate chair for research in the Department of Population Health, professor of population health and pediatrics, director of the Center for Health and Environment: Education and Research, and associate director of the Health Transformation Research Institute at Dell Medical School. She is a pediatric allergist-immunologist and epidemiologist and a leading international expert on environmental exposures and their effects on asthma and other allergic conditions."
+            )
         )
       )
     )
   )
-)
+))
 
 # Server ----
 server <- function(input, output, session) {
@@ -546,7 +566,6 @@ server <- function(input, output, session) {
   #Definition Table
   output$definitions <- renderDataTable(DT::datatable(definitions,
                                                       options = list(pageLength = 10)))
-  
 
   ####################################### Welcome Button 
   observeEvent(
@@ -556,10 +575,8 @@ server <- function(input, output, session) {
         easyClose = TRUE,
         size = "l",
         fade = TRUE
-        
       ))
     }
-    
   )
 }
 

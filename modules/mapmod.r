@@ -185,6 +185,17 @@ mapServer <- function(id, data, selected) {
           domain = data()$value,
           na.color = NA #"#D3D3D3"
         )
+      } else if (selected() == "Asthma ED incidence" |
+                 selected() == "Asthma ED incidence Children" |
+                 selected() == "Asthma ED incidence Adults"){
+        mybins <- c(0,50,100,150,200,250,300,550)
+        colorBin(
+          palette = "Reds",
+          reverse = FALSE,
+          domain = data()$value,
+          bins = mybins,
+          na.color = NA #"#D3D3D3"
+        )
       } 
       else {
         colorNumeric(
