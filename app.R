@@ -70,7 +70,6 @@ ui = dashboardPage(
   sidebar = shinydashboard::dashboardSidebar(
     useShinyjs(),
     shinyjs::extendShinyjs(text = jsToggleFS, functions = "toggleFullScreen"),
-    introjsUI(),
     collapsed = FALSE,
     ## Sidebar ----
     sidebarMenu(

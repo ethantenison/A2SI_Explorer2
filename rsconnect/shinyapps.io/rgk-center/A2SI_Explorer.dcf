@@ -5,10 +5,10 @@ account: rgk-center
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4342813
-bundleId: 5470228
+bundleId: 5479168
 url: https://rgk-center.shinyapps.io/A2SI_Explorer/
-when: 1642202176.37521
-lastSyncTime: 1642202176.37521
+when: 1642469550.03816
+lastSyncTime: 1642469550.03816
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: 2021-12-16_09-02-21.Rprof|2021-12-16_09-10-37.Rprof|app2.r|test.r
